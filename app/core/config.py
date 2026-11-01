@@ -85,6 +85,66 @@ class Settings(BaseSettings):
     enrich_interval_seconds: int = 30
     enrich_batch_size: int = 50
 
+    # ---------- 应用角色（P0：同一镜像按角色挂路由 / 起后台循环） ----------
+    # all = 本地默认（全部路由 + 后台循环）；ingest = 只写（摄入 + 回收 / enrich）；
+    # rag = 只读（检索 / 问答），不跑迁移、不起后台循环。
+    app_role: Literal["all", "ingest", "rag"] = "all"
+
+    # ---------- embedding（P0：真实下游） ----------
+    # provider 决定向量从哪来：hash（测试桩，不出网）/ fastembed（本地 ONNX）/
+    # openai_compat（OpenAI 兼容的向量端点）。用 Literal 让写错值在启动时就暴露。
+    embedding_provider: Literal["hash", "fastembed", "openai_compat"] = "fastembed"
+    embedding_model: str = "BAAI/bge-small-zh-v1.5"
+    # 维度必须与模型一致，也要与 Qdrant collection 的 size 对齐；换维度要新建集合。
+    embedding_dim: int = 512
+    embedding_batch_size: int = 32
+    embedding_timeout_seconds: float = 10.0
+    # fastembed 的 ONNX 模型缓存目录 —— 挂命名卷，避免每次重建镜像都重新下载。
+    embedding_cache_dir: str = "/models/fastembed"
+    # 可选：已经下载好的 ONNX 模型目录（离线/内网环境用）。
+    # 填了它时 fastembed 不再联网下载，直接用这个目录里的模型文件。
+    embedding_model_path: str = ""
+    # 只有 openai_compat 档用得上：基址 + 端点路径 + 可选 key（自建服务通常不要 key）
+    embedding_api_base_url: str = ""
+    embedding_api_key: str = ""
+    embedding_api_path: str = "/v1/embeddings"
+
+    # ---------- Qdrant ----------
+    qdrant_url: str = "http://qdrant:6333"
+    qdrant_api_key: str = ""
+    # 集合名带版本：换 embedding 模型 / 维度时新建集合再切配置，不做原地改维度。
+    qdrant_collection: str = "document_chunks_v1"
+    qdrant_timeout_seconds: float = 10.0
+
+    # ---------- LLM（RAG 问答） ----------
+    # openai_compat 覆盖 Ollama / vLLM / 云厂商兼容端点；extractive 是无模型兜底。
+    llm_provider: Literal["openai_compat", "extractive"] = "openai_compat"
+    llm_base_url: str = "http://host.docker.internal:11434/v1"
+    llm_model: str = "qwen2.5:3b-instruct"
+    llm_api_key: str = ""
+    llm_path: str = "/chat/completions"
+    llm_timeout_seconds: float = 60.0
+    llm_max_tokens: int = 1024
+    llm_temperature: float = 0.2
+    # 拼 prompt 时可用的上下文预算（token）—— 超了按分数从低往高截掉片段。
+    llm_context_tokens: int = 6000
+
+    # ---------- 失败重试 / 毒丸 ----------
+    # 同一个 chunk 连续失败到上限就转 failed 终态，避免确定性错误（比如维度配错）
+    # 让队列永远在 pending / processing 之间打转。
+    max_embed_attempts: int = 3
+    # 指数退避的基数：第 n 次失败后等 backoff * 2**(n-1) 秒才可再次被认领。
+    embed_backoff_seconds: int = 5
+
+    # ---------- 检索 / 问答缓存 ----------
+    qa_cache_enabled: bool = True
+    qa_cache_ttl: int = 3600
+    # prompt 模板版本：改了模板就 +1，让旧缓存 key 自然失效。
+    prompt_version: int = 1
+    retrieval_top_k: int = 5
+    # 低于该分数的召回直接判为证据不足（0 = 不启用；阈值要用评测集校准，别拍脑袋）。
+    retrieval_score_threshold: float = 0.0
+
     # ---------- 派生 DSN（用 @property 现拼，不重复存字段） ----------
     @property
     def database_url(self) -> str:

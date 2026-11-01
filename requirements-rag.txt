@@ -1,0 +1,3 @@
+-r requirements.txt
+# 本地 ONNX embedding（只在 rag-api / embedder 镜像安装；api/test 用 hash 桩）
+fastembed>=0.4

@@ -21,3 +21,8 @@ alembic>=1.13
 jieba>=0.42.1
 # enrich 调模型服务走 HTTP（阶段 H）—— 以前它只是 dev 依赖，现在 api 运行期真的要用
 httpx>=0.28.1
+# 向量库客户端：api/rag-api/embedder 共用（纯 Python，体积小）
+# 注意：qdrant-client 1.20 与 compose 里的 Qdrant 1.12.4 小版本差超过 1，客户端会打印
+# 兼容性警告；本项目只用 collection/upsert/query_points/scroll 这些稳定接口，已在
+# app/infra/qdrant_client.py 显式 check_compatibility=False。升级服务端镜像时可再收紧。
+qdrant-client>=1.15,<2

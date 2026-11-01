@@ -1,18 +1,23 @@
-# 定义多容器 Docker 应用：api + mysql + redis + syncer + embedder + model
+# 定义多容器 Docker 应用：api（摄入）+ rag-api（检索问答）+ qdrant + mysql + redis + syncer + embedder + model
 # 起法：docker compose up -d --build  →  docker compose ps（详见 README「快速开始」）
 #      看完整流水线：docker compose up -d --scale syncer=2 --scale embedder=3
 #
 # 端口：容器内 mysql/redis 是 3306/6379。宿主机映射到 3307/6380 —— 只给宿主机上的 GUI 工具用
 #      （应用自己永远走服务名，见下面 api 的 environment）；避开本机可能已在跑的实例。
+#
+# 角色划分（同一个镜像 + APP_ROLE 环境变量）：
+#   api     = ingest：写入 + 回收 / enrich，暴露 8000；
+#   rag-api = rag   ：检索 / 问答（Qdrant + LLM），暴露 8001，不迁移、不起后台循环。
 services:
-  # ---------- FastAPI 应用 ----------
+  # ---------- FastAPI 应用（摄入侧） ----------
   api:
     # 【必须钉 target】：多阶段 Dockerfile 默认只建【最后一个】stage。
     # 不钉的话 api 会去建 test stage（把 pytest 带进生产镜像）。
     build:
       context: .
       target: runtime
-    container_name: rag-api
+    # 不和 rag-api 抢名字 —— 两者的容器名必须不同
+    container_name: rag-ingest-api
     ports:
       - "8000:8000"
     # env_file 只提供账号 / 口令 / 业务参数（.env 里没有 host/port）
@@ -26,6 +31,8 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_DB: 0
+      # 摄入进程只挂 documents/chunks/stats 路由，并跑迁移 + 回收 / enrich 循环
+      APP_ROLE: ingest
       ENRICH_MODEL_URL: "http://model:8000/enrich"   # enrich 走模型服务时去哪儿调
     depends_on:
       # service_healthy：等对方健康检查通过再启动，防止应用崩溃
@@ -40,6 +47,72 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    restart: unless-stopped
+    networks: [backend]
+
+  # ---------- 检索 / 问答 API（只读） ----------
+  # 用 rag stage（多装 fastembed）；不迁移、不起后台循环、也不强依赖 Redis 可用。
+  rag-api:
+    build:
+      context: .
+      target: rag
+    ports:
+      - "8001:8000"
+    env_file:
+      - .env
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      APP_ROLE: rag
+      QDRANT_URL: http://qdrant:6333
+      # ${VAR:-default} 是 compose 的插值：.env 里写了就用 .env 的，没写用默认值
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-fastembed}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-BAAI/bge-small-zh-v1.5}
+      EMBEDDING_DIM: ${EMBEDDING_DIM:-512}
+      # 宿主机模型目录（scripts\fetch_embedding_model.cmd 下载）只读挂进容器；
+      # 容器内路径固定为 /models/bge-small-zh-v1.5，provider 用 specific_model_path 直接加载。
+      EMBEDDING_MODEL_PATH: /models/bge-small-zh-v1.5
+      HF_HUB_OFFLINE: "1"
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai_compat}
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://host.docker.internal:11434/v1}
+      LLM_MODEL: ${LLM_MODEL:-qwen2.5:3b-instruct}
+      # 问答进程不需要那么多 worker：并发远低于摄入
+      API_WORKERS: 2
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      # qdrant 镜像里没有 curl/wget 做健康检查，只能等进程启动
+      qdrant:
+        condition: service_started
+      # 等摄入侧把库迁完，rag 的只读查询才有表可查
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      # 本地 ONNX 模型只读挂载；路径可用 .env 的 EMBEDDING_MODEL_HOST_PATH 覆盖
+      - "${EMBEDDING_MODEL_HOST_PATH:-./models/bge-small-zh-v1.5}:/models/bge-small-zh-v1.5:ro"
+    restart: unless-stopped
+    networks: [backend]
+
+  # ---------- Qdrant 向量库 ----------
+  # 不加 healthcheck：镜像里没有 curl/wget；依赖方用 service_started。
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    container_name: rag-qdrant
+    ports:
+      - "6333:6333"                     # 只给宿主机 GUI / curl 排查；应用走 qdrant:6333
+    volumes:
+      - qdrant_data:/qdrant/storage     # 命名卷：容器删了索引还在（也可随时从 MySQL 重建）
     restart: unless-stopped
     networks: [backend]
 
@@ -64,16 +137,37 @@ services:
     restart: unless-stopped
     networks: [backend]
 
-  # ---------- 向量化 worker：认领 chunk → 模拟 embedding → 上报完成（可 --scale）----------
+  # ---------- 真实向量化 worker：认领 → embedding → Qdrant upsert/delete → 回报（可 --scale）----------
   embedder:
-    build: ./embedder
+    # 用 rag stage：多装 fastembed；embedder/ 代码也由该 stage COPY 进镜像
+    build:
+      context: .
+      target: rag
+    # 【不设 container_name】—— 设了就没法 --scale
+    command: ["python", "-m", "embedder.main"]
     environment:
       API_BASE: "http://api:8000"
       CLAIM_LIMIT: "20"               # 每次认领多少块
-      EMBED_SLEEP: "0.05"             # 模拟单块 embedding 的耗时（秒）
+      EMBED_BATCH_SIZE: ${EMBEDDING_BATCH_SIZE:-32}   # 一批做多少次模型推理
+      IDLE_SLEEP: "2"                 # 没活干时的轮询间隔（秒）
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: ${QDRANT_COLLECTION:-document_chunks_v1}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-fastembed}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-BAAI/bge-small-zh-v1.5}
+      EMBEDDING_DIM: ${EMBEDDING_DIM:-512}
+      # 与 rag-api 共用同一个只读模型目录；specific_model_path 直接加载，不联网
+      EMBEDDING_MODEL_PATH: /models/bge-small-zh-v1.5
+      HF_HUB_OFFLINE: "1"
+      # ONNX 模型缓存目录：挂命名卷，重建镜像 / 容器不必重新下载
+      EMBEDDING_CACHE_DIR: /models/fastembed
+    volumes:
+      - fastembed_models:/models/fastembed
+      - "${EMBEDDING_MODEL_HOST_PATH:-./models/bge-small-zh-v1.5}:/models/bge-small-zh-v1.5:ro"
     depends_on:
       api:
         condition: service_healthy
+      qdrant:
+        condition: service_started
     restart: unless-stopped
     networks: [backend]
 
@@ -100,11 +194,20 @@ services:
       # 否则一条"逐项降级"的纯函数单测会真去调厂商 API（花真钱）。这个坑踩过一次了。
       ENRICH_PROVIDER: rule
       ENRICH_API_KEY: ""           # 顺便把真 key 挡在测试容器外
+      # 向量 / 问答侧同样不打真上游：hash 桩向量 + extractive 兜底，也不依赖 fastembed
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: document_chunks_test
+      EMBEDDING_PROVIDER: hash
+      EMBEDDING_DIM: "64"
+      LLM_PROVIDER: extractive
+      APP_ROLE: all                # 测试要同时打摄入与问答路由
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
+      qdrant:
+        condition: service_started
     # 挂载测试目录：改测试后直接重跑即可，不必每次 `--build`
     # （注意 `docker compose run` 默认【复用已有镜像】，不重建 —— 所以挂载很省事）
     volumes:
@@ -162,6 +265,8 @@ services:
 volumes:
   mysql_data:
   redis_data:
+  qdrant_data:
+  fastembed_models:
 
 networks:
   backend:

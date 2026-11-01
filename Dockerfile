@@ -1,6 +1,11 @@
 # ---- 基础镜像（生产用的 runtime stage）----
 FROM python:3.13-slim AS runtime
 
+# 国内构建加速：pip 默认走 pypi.org，在部分网络下会卡住。
+# 需要官方源时用 --build-arg PIP_INDEX_URL=https://pypi.org/simple/ 覆盖。
+ARG PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+ENV PIP_INDEX_URL=${PIP_INDEX_URL}
+
 # PYTHONUNBUFFERED：日志不缓冲，docker logs 才能实时看到（不加会攒着一次性输出）
 # PYTHONDONTWRITEBYTECODE：不在镜像里生成 __pycache__
 ENV PYTHONUNBUFFERED=1 \
@@ -36,6 +41,20 @@ EXPOSE 8000
 CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers ${API_WORKERS:-4}"]
 
 
+# ---- RAG / embedder stage：真实 embedding + 问答 ----
+# rag-api 与 embedder 都用它：比 runtime 多装 fastembed（onnxruntime 那套只在这里）。
+# ingest api 与 test 仍从 runtime 起，不背这部分体积与模型依赖。
+FROM runtime AS rag
+COPY requirements-rag.txt .
+ENV HF_ENDPOINT=https://hf-mirror.com \
+    FASTEMBED_CACHE_PATH=/models/fastembed
+# 构建期只装依赖，不下载模型：模型由 compose 从宿主机只读挂载到
+# /models/bge-small-zh-v1.5（scripts/fetch_embedding_model 下载），provider 走
+# specific_model_path 直接加载。这样构建不会被 HuggingFace 网络卡住。
+RUN pip install --no-cache-dir -r requirements-rag.txt
+COPY embedder/ ./embedder/
+
+
 # ---- 测试 stage（多阶段构建的第二个 target）----
 # 用法：docker compose --profile test run --rm test
 # FROM runtime 而不是重开一个 slim：直接继承上面【构建期已预热】的 tiktoken 词表，
@@ -48,5 +67,7 @@ RUN pip install --no-cache-dir -r requirements-dev.txt
 # pytest 的 asyncio 配置在 pyproject.toml 里（生产镜像不拷它，也就读不到那段配置）
 COPY pyproject.toml .
 COPY tests/ ./tests/
+# 测试会直接 import embedder.main 跑 index_once（用 hash provider，不需要 fastembed）
+COPY embedder/ ./embedder/
 
 CMD ["pytest", "-q"]

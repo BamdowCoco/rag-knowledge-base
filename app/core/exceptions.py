@@ -48,12 +48,29 @@ class ChunkNotFoundError(AppError):
     """分块不存在"""
 
 
+class ChunkClaimMismatchError(AppError):
+    """认领令牌已失效，可能已被回收后重新认领"""
+
+
+class ChunkNotProcessingError(AppError):
+    """分块不在处理中状态"""
+
+
+class RetrievalUnavailableError(AppError):
+    """检索服务暂不可用"""
+
+
 # 业务异常 → HTTP 状态码。这张表只存在于这个（HTTP）边界模块里。
 _ERROR_STATUS = {
     DocumentNotFoundError: status.HTTP_404_NOT_FOUND,
     ChunkNotFoundError: status.HTTP_404_NOT_FOUND,
     DocumentInProgressError: status.HTTP_409_CONFLICT,
     ContentConflictError: status.HTTP_409_CONFLICT,
+    # fencing 失败 / 状态不对都是「你手里的状态过期了」，让调用方重新认领，所以是 409
+    ChunkClaimMismatchError: status.HTTP_409_CONFLICT,
+    ChunkNotProcessingError: status.HTTP_409_CONFLICT,
+    # 检索依赖（Qdrant / embedding）不可用 —— 这是暂时的，503 才让调用方重试
+    RetrievalUnavailableError: status.HTTP_503_SERVICE_UNAVAILABLE,
     EmptyContentError: status.HTTP_422_UNPROCESSABLE_CONTENT,
 }
 

@@ -43,3 +43,23 @@ def decode_tokens(ids: list[int]) -> str:
     :return: 解码后的文本；不完整的 UTF-8 字节会被丢弃。
     """
     return enc.decode(ids, errors="ignore")
+
+
+def truncate_tokens(text: str, max_tokens: int) -> str:
+    """
+    把文本截到不超过 ``max_tokens`` 个 token。
+
+    拼接 prompt 时用：预算只够放半段资料时，截断比"整段丢弃"更能保住上下文。
+    截断仍走 ``decode_tokens`` —— 直接按 token 切中文会在多字节字符中间断开，
+    解出来是 ``�`` （见 ``decode_tokens`` 的说明）。
+
+    :param text: 任意文本。
+    :param max_tokens: 允许的最大 token 数；``<= 0`` 返回空串。
+    :return: 截断后的文本；未超预算时原样返回。
+    """
+    if max_tokens <= 0:
+        return ""
+    ids = enc.encode(text)
+    if len(ids) <= max_tokens:
+        return text
+    return decode_tokens(ids[:max_tokens])

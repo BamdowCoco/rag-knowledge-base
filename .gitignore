@@ -19,8 +19,14 @@ htmlcov/
 .idea/
 .vscode/
 
+# 本地 AI 会话配置（Claude Code 等，不进仓库）
+.claude/
+
 # 个人文档（本地学习笔记，不进仓库）
 docs/
+
+# 本地 embedding 模型（约 95MB，由 scripts/fetch_embedding_model 下载）
+models/
 
 # 图的本地工具与说明：只提交 PNG 产物，导出脚本与本地笔记不入库
 assets/diagrams/pad-png.py
