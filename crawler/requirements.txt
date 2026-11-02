@@ -1,0 +1,4 @@
+httpx>=0.28.1
+redis>=8.1
+trafilatura>=2.3
+selectolax>=1.0

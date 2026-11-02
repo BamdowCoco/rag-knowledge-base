@@ -49,8 +49,9 @@ docker compose up -d --build
 docker compose ps          # 期望：api / mysql / redis 是 healthy，其余 Up
 ```
 
-六个容器：`api`（本服务）、`mysql` / `redis`、`syncer`（模拟上游）、`embedder`（模拟下游 worker）、
-`model`（假模型服务，enrich 的替身上游）。
+常驻容器：`api`（本服务）、`rag-api`（检索问答，8001）、`mysql` / `redis` / `qdrant`、
+`syncer`（模拟上游）、`embedder`（模拟下游 worker）、`model`（假模型服务，enrich 的替身上游）。
+`crawler`（真实上游爬虫）只在显式 `--profile crawler` 时运行，见下面第 7 步。
 
 ![架构总览：docker compose 里的六个服务、网络 backend、两个命名卷与端口映射](assets/diagrams/01-architecture.png)
 
@@ -98,6 +99,34 @@ docker compose --profile test run --rm test
 
 > 更细的逐步验收（每一步"应该看到什么"）、常见症状、Windows 上的 shell 差异，
 > 都在 `docs/README-旧版.md`（本地留存，未入库）。
+
+### 7. 真实上游爬虫（可选）
+
+`crawler` 从 FastAPI 中文文档的 sitemap 发现页面，走同一套 `/documents/bulk` 接入：
+先读 `robots.txt`，单 host 并发 2、请求起始间隔 ≥1s；`ETag` / `Last-Modified` 加正文哈希做增量判断；
+404/410 立即发删除信号，从 sitemap 连续两轮消失才删。
+
+```text
+# Windows（cmd / PowerShell）：跑一轮，抓 5 页
+docker compose --profile crawler run --rm -e CRAWL_MAX_PAGES=5 crawler
+
+# 重推同一批内容，演示接口去重（document_clean 行数不增加）
+docker compose --profile crawler run --rm -e CRAWL_MAX_PAGES=5 -e CRAWL_REPLAY=true crawler
+
+# 常驻：每 6 小时一轮
+set CRAWL_ONCE=false && docker compose --profile crawler up -d crawler
+
+# PowerShell
+$env:CRAWL_ONCE="false"; docker compose --profile crawler up -d crawler
+
+# Git Bash / WSL / macOS
+CRAWL_ONCE=false docker compose --profile crawler up -d crawler
+```
+
+> 数据来源：`https://fastapi.tiangolo.com/zh/`（FastAPI 官方中文文档，MIT）。
+> 只做本地检索演示，不重新分发抓到的全文。
+> 默认 `CRAWL_ONCE=true`，`run --rm` 抓完一轮即退出；`CRAWL_REPLAY=true` 跳过缓存强制重推。
+> 验收时按 `source='web'` 过滤：`scripts\mysql.cmd "select count(*) from document_clean where source='web';"`
 
 ---
 
@@ -186,10 +215,11 @@ overlap 则是为了跨块语义连贯：检索命中一块时，不至于因为
 | 迁移 | Alembic（启动时 `upgrade head`，空库首启自动建表） |
 | 缓存 / 去重 / 锁 | Redis 7（`redis.asyncio`）：去重快路径、Cache-Aside、分布式锁 |
 | 并发原语 | `SKIP LOCKED` 任务分发 · Lua 比对 token 释放锁 · 版本号让缓存失效 |
-| 容器 | Docker Compose：api · mysql · redis · syncer · embedder · model |
+| 容器 | Docker Compose：api · rag-api · mysql · redis · qdrant · syncer · embedder · model · crawler（profile） |
 | 同步 / Worker | httpx（批量推送、认领任务、调模型服务）；`syncer` / `embedder` 可 `--scale` 多实例 |
+| 真实上游 | sitemap 发现 · robots 校验 · 限速/退避 · ETag/Last-Modified + 正文哈希增量 · trafilatura 正文抽取 |
 | AI 增强 | 规则档（py3langid + jieba）或 HTTP 上游（含 OpenAI 兼容协议） |
-| 测试 | pytest + pytest-asyncio（真 MySQL + 真 Redis，110 条） |
+| 测试 | pytest + pytest-asyncio（真 MySQL + 真 Redis + 真 Qdrant，250 条） |
 
 ---
 
@@ -226,13 +256,14 @@ rag-ingest-pipeline/
 │   ├── core/                          # 配置 / 日志 / 业务异常与统一映射
 │   └── utils/                         # 无状态纯工具（hash / 时间 / 语言 / 关键词 / 切样）
 ├── syncer/                            # 模拟上游：周期性批量推文档
+├── crawler/                           # 真实上游：sitemap 发现 + 条件请求 + 批量推送
 ├── embedder/                          # 模拟下游：认领 chunk 做（模拟）向量化
 ├── model/                             # 假模型服务（零依赖；enrich 的可插拔上游）
 ├── alembic/                           # 迁移（异步 engine，DSN 取自配置）
 ├── assets/diagrams/                   # README 用的图（PNG；可编辑源在本地 docs/diagrams/）
 ├── scripts/                           # 上游探活、两个查库包装、样例 JSON
 ├── tests/                             # pytest（真 MySQL + 真 Redis）
-└── docker-compose.yml                 # 六个服务 + 网络 + 卷
+└── docker-compose.yml                 # 服务编排 + 网络 + 卷
 ```
 
 **分层与数据流**：`endpoint → service → repository → DB`；缓存 / 去重 / 锁走 Redis；

@@ -1,6 +1,10 @@
 # 定义多容器 Docker 应用：api（摄入）+ rag-api（检索问答）+ qdrant + mysql + redis + syncer + embedder + model
+# 可选：crawler（真实公开文档站爬虫，profile=crawler，默认不构建也不运行）
 # 起法：docker compose up -d --build  →  docker compose ps（详见 README「快速开始」）
 #      看完整流水线：docker compose up -d --scale syncer=2 --scale embedder=3
+#      跑爬虫一轮：docker compose --profile crawler run --rm crawler
+#
+# profiles 说明：不带 profile 的服务是默认启动的；test / crawler 只有显式 --profile 才会被构建或运行。
 #
 # 端口：容器内 mysql/redis 是 3306/6379。宿主机映射到 3307/6380 —— 只给宿主机上的 GUI 工具用
 #      （应用自己永远走服务名，见下面 api 的 environment）；避开本机可能已在跑的实例。
@@ -135,6 +139,31 @@ services:
       api:
         condition: service_healthy   # 等 api 健康再开始推
     restart: unless-stopped
+    networks: [backend]
+
+  # ---------- 真实上游爬虫（可选 profile：显式 --profile crawler 才构建 / 运行）----------
+  # 按 sitemap 抓公开文档站，条件请求 + 正文哈希做增量，推给 api 的 bulk / delete 接口。
+  # 默认 CRAWL_ONCE=true：`compose run --rm` 跑完一轮即退出；要常驻轮询就设 CRAWL_ONCE=false。
+  crawler:
+    build: ./crawler
+    profiles: ["crawler"]
+    environment:
+      API_BASE: http://api:8000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      CRAWL_SITEMAP_URL: ${CRAWL_SITEMAP_URL:-https://fastapi.tiangolo.com/zh/sitemap.xml}
+      CRAWL_URL_PREFIX: ${CRAWL_URL_PREFIX:-https://fastapi.tiangolo.com/zh/}
+      CRAWL_MAX_PAGES: ${CRAWL_MAX_PAGES:-150}
+      CRAWL_ONCE: ${CRAWL_ONCE:-true}
+      CRAWL_INTERVAL_SECONDS: ${CRAWL_INTERVAL_SECONDS:-21600}
+      CRAWL_REPLAY: ${CRAWL_REPLAY:-false}
+      CRAWL_USER_AGENT: "${CRAWL_USER_AGENT:-rag-ingest-demo/0.1 (+https://github.com/BamdowCoco/rag-ingest-pipeline)}"
+      BULK_SIZE: ${BULK_SIZE:-30}
+    depends_on:
+      api: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    restart: "no"          # 默认一轮即退出；常驻请设 CRAWL_ONCE=false
     networks: [backend]
 
   # ---------- 真实向量化 worker：认领 → embedding → Qdrant upsert/delete → 回报（可 --scale）----------

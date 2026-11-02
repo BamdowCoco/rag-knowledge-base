@@ -1,0 +1,4 @@
+# 爬虫镜像的构建上下文是 ./crawler，根目录的 .dockerignore 不生效，这里单独排掉本地产物
+__pycache__/
+*.py[cod]
+.pytest_cache/

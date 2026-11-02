@@ -66,6 +66,10 @@ RUN pip install --no-cache-dir -r requirements-dev.txt
 
 # pytest 的 asyncio 配置在 pyproject.toml 里（生产镜像不拷它，也就读不到那段配置）
 COPY pyproject.toml .
+# 爬虫（可选上游）也在测试范围内：先装它的运行依赖（层缓存），再拷代码
+COPY crawler/requirements.txt ./crawler/requirements.txt
+RUN pip install --no-cache-dir -r crawler/requirements.txt
+COPY crawler/ ./crawler/
 COPY tests/ ./tests/
 # 测试会直接 import embedder.main 跑 index_once（用 hash provider，不需要 fastembed）
 COPY embedder/ ./embedder/
