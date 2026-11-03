@@ -143,11 +143,49 @@ CRAWL_ONCE=false docker compose --profile crawler up -d crawler
 | GET | `/api/v1/documents/stats` | 文档数 / 按来源 top10 / 今日新增 / 去重计数 / chunk 状态分布 |
 | POST | `/api/v1/chunks/claim` | 下游 worker **认领**待向量化的 chunk（`SKIP LOCKED`，可并发抢） |
 | POST | `/api/v1/chunks/{id}/complete` | worker 上报完成 |
+| POST | `/api/v1/search` | 向量 / hybrid 检索（rag-api，8001）；请求可带 `retrieval_mode`、`use_cache` |
+| POST | `/api/v1/chat/stream` | 带引用的流式问答（SSE）；请求可带 `retrieval_mode`、`use_cache`、`score_threshold` |
+| GET | `/metrics` | Prometheus 文本指标（rag-api / api，需 `APP_ROLE in (all, rag)`） |
+
+> **检索模式**：默认 `dense`（纯向量）；`retrieval_mode="hybrid"` 会叠加 MySQL FULLTEXT
+> ngram 关键词召回并用 RRF 融合。评测显示 hybrid 在 dev 有提升、test 没有，因此**默认不开启**，
+> 见下面「评测」一节。
 
 > **「重复」不是错误**：同步器周期性地跑，文档没变也会重推 —— 所以语义是"已存在，跳过"（`200`），
 > 同步器不必把正常同步当异常处理。
 
 ![文档一生时序图：从同步器推入、Redis 快路径与 MySQL 落库，到下游 embedder 认领 / 回报的一块任务单元](assets/diagrams/03-lifecycle.png)
+
+---
+
+## 评测（P2）
+
+`evals/golden.jsonl` 是 50 道中文 golden set：18 事实 / 9 操作 / 9 对比 / 9 细节 / 5 负样本，
+按 70/30 切成 dev 35 / test 15。评测关闭缓存，按 evidence URL 计算 Recall@5、MRR、nDCG，
+以及引用准确率 / 召回率、拒答准确率与检索 / 首 token / 总延迟。
+
+test 集（13 道可回答 + 2 负样本）实测：
+
+| 配置 | Recall@5 | MRR | nDCG@10 | 引用准确率 | 检索 p95 | 总 p95 |
+|---|---:|---:|---:|---:|---:|---:|
+| dense（默认） | 0.769 | 0.769 | 0.740 | 0.396 | 19 ms | 27 ms |
+| hybrid | 0.769 | 0.731 | 0.713 | 0.430 | 348 ms | 440 ms |
+
+**结论**：hybrid 在 dev 上提升明显（Recall@5 0.9375 → 1.0、MRR 0.757 → 0.932），但 test 上没有
+召回提升、MRR/nDCG 略降、检索 p95 多约 330 ms。因此 **默认保留 dense**，hybrid 作为按需开关。
+负样本拒答为 0：负样本与正样本的 `best_dense_score` 重叠，任何能拒掉负样本的阈值都会造成
+>9% 误拒；下一步应改用 LLM 拒答提示或 cross-encoder，而不是继续调余弦阈值。
+
+```text
+# 从宿主机（需要 httpx + pyyaml）
+python -m scripts.eval_rag --config dense  --base-url http://localhost:8001 --split test
+python -m scripts.eval_rag --config hybrid --base-url http://localhost:8001 --split test
+
+# 或用 eval 容器（结果经 ./evals 挂载回仓库）
+docker compose --profile eval run --rm eval python -m scripts.eval_rag --config dense --split test
+```
+
+完整报告在 `evals/results/2026-11-03-summary.md`，原始 JSON 在同目录。
 
 ---
 
@@ -218,8 +256,10 @@ overlap 则是为了跨块语义连贯：检索命中一块时，不至于因为
 | 容器 | Docker Compose：api · rag-api · mysql · redis · qdrant · syncer · embedder · model · crawler（profile） |
 | 同步 / Worker | httpx（批量推送、认领任务、调模型服务）；`syncer` / `embedder` 可 `--scale` 多实例 |
 | 真实上游 | sitemap 发现 · robots 校验 · 限速/退避 · ETag/Last-Modified + 正文哈希增量 · trafilatura 正文抽取 |
+| 检索增强 | dense（默认）· MySQL FULLTEXT ngram + RRF 的 hybrid（按需开启，评测后决定不默认启用） |
+| 可观测性 | prometheus-client：HTTP / 检索 / LLM / 缓存 / 积压指标，顶层 `/metrics` |
 | AI 增强 | 规则档（py3langid + jieba）或 HTTP 上游（含 OpenAI 兼容协议） |
-| 测试 | pytest + pytest-asyncio（真 MySQL + 真 Redis + 真 Qdrant，250 条） |
+| 测试 | pytest + pytest-asyncio（真 MySQL + 真 Redis + 真 Qdrant，286 条） |
 
 ---
 
@@ -261,8 +301,9 @@ rag-ingest-pipeline/
 ├── model/                             # 假模型服务（零依赖；enrich 的可插拔上游）
 ├── alembic/                           # 迁移（异步 engine，DSN 取自配置）
 ├── assets/diagrams/                   # README 用的图（PNG；可编辑源在本地 docs/diagrams/）
-├── scripts/                           # 上游探活、两个查库包装、样例 JSON
-├── tests/                             # pytest（真 MySQL + 真 Redis）
+├── evals/                             # golden set、评测配置与实测结果
+├── scripts/                           # 上游探活、查库包装、评测 runner、样例 JSON
+├── tests/                             # pytest（真 MySQL + 真 Redis + 真 Qdrant）
 └── docker-compose.yml                 # 服务编排 + 网络 + 卷
 ```
 

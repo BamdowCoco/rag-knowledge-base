@@ -6,31 +6,35 @@ lifespan 是「应用启动到关闭」的生命周期钩子：yield 之前是�
 **同一个镜像按 ``APP_ROLE`` 扮演不同进程**：
 
 - ``ingest`` / ``all``：探活 Redis、把库升到最新、起回收与 enrich 循环；
-- ``rag`` / ``all``：确保 Qdrant 集合存在（维度 / payload 索引就绪）；
-- ``rag``：不探活 Redis、不迁移、不起后台循环 —— 它只读，Redis 只是缓存，
-  缓存故障在服务内吞掉，不能拦住问答启动。
+- ``rag`` / ``all``：确保 Qdrant 集合存在（维度 / payload 索引就绪）、挂 ``/metrics``；
+- ``rag``：不探活 Redis、不迁移、不起摄入侧后台循环 —— 它只读，Redis 只是缓存，
+  缓存故障在服务内吞掉，不能拦住问答启动。它仍会起「待向量化 chunk 数」的指标刷新循环，
+  因为那只是只读查 MySQL。
 """
 import asyncio
 import contextlib
 import logging
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from alembic import command
 from alembic.config import Config as AlembicConfig
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.exceptions import register_exception_handlers
 from app.core.logging import setup_logging
+from app.core.metrics import observe_http_request
 from app.db.session import engine
 from app.infra.ai_client import close_ai_clients
 from app.infra.model_client import close_model_client
 from app.infra.qdrant_client import close_qdrant, ensure_collection
 from app.infra.redis_client import close_redis, redis_client
 from app.services.enricher import enrich_loop
+from app.services.metrics_refresh import metrics_loop
 from app.services.reclaimer import reclaim_loop
 
 setup_logging()  # 必须在其它模块打日志之前调用
@@ -77,17 +81,21 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await asyncio.to_thread(_upgrade_schema)
         logger.info("数据库表已就绪")
 
-        # 两个应用内的循环，职责不同、形状一样（都是 lifespan 起停 + 每轮吞异常）：
+        # 三个应用内的循环，职责不同、形状一样（都是 lifespan 起停 + 每轮吞异常）：
         #   reclaimer —— 把"卡住的"放回去（chunk 的 processing、文档的 enrich processing）
         #   enricher  —— 把"待办的"做掉（模型调用是秒级外部依赖，不能压在请求路径里）
+        #   metrics   —— 定时把待向量化 chunk 数刷进 Gauge（只读查库，不参与业务判断）
         background = [
             asyncio.create_task(reclaim_loop()),
             asyncio.create_task(enrich_loop()),
+            asyncio.create_task(metrics_loop()),
         ]
-        logger.info("后台循环已启动：reclaim / enrich")
+        logger.info("后台循环已启动：reclaim / enrich / metrics")
     else:
-        # rag 只读：不迁移、不起后台循环、也不要求 Redis 可用（缓存故障在服务内吞掉）
-        logger.info("rag 角色：跳过 Redis 探活、数据库迁移与后台循环")
+        # rag 只读：不迁移、不要求 Redis 可用（缓存故障在服务内吞掉）、不起摄入侧循环。
+        # 指标刷新只读查 MySQL，所以 rag 也起一个 —— 两个角色暴露同一套积压数。
+        background = [asyncio.create_task(metrics_loop())]
+        logger.info("rag 角色：跳过 Redis 探活、数据库迁移与摄入循环；仅启动 metrics 刷新")
 
     if role in ("all", "rag"):
         # 集合维度与 EMBEDDING_DIM 一致才能写/查；不一致直接启动失败，别等第一个请求
@@ -114,6 +122,53 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 register_exception_handlers(app)     # 业务异常 → HTTP 的统一映射在这里挂上
 app.include_router(api_router, prefix="/api/v1")
+
+
+@app.middleware("http")
+async def count_http_requests(
+    request: Request,
+    call_next: Callable[[Request], Awaitable[Response]],
+) -> Response:
+    """
+    按 ``(route, status)`` 给 HTTP 请求计数。
+
+    **route 优先取路由模板**（``request.scope["route"].path``，例如
+    ``/api/v1/documents/{document_id}``）；取不到模板时才退回实际 URL —— 直接拿 URL 当
+    label，会把 ``/documents/123``、``/documents/124`` 打成上千条各占一条的时间序列。
+
+    ``call_next`` 返回的是响应对象，对 SSE 而言它表示「响应头已就绪」，不是「流已写完」；
+    请求数按『已开始处理』计一次即可，不追求字节级完成时间。
+
+    未处理异常会由最外层的 ``ServerErrorMiddleware`` 变成 500；这里捕获后先记一笔再原样
+    抛出，否则错误率面板会漏掉真正把请求打挂的那些调用。
+
+    :param request: 入站请求。
+    :param call_next: 交给下游处理并取回响应。
+    :return: 下游响应，原样返回（不改状态码与响应体）。
+    """
+    route = request.scope.get("route")
+    route_path = getattr(route, "path", None) or request.url.path
+    try:
+        response = await call_next(request)
+    except Exception:
+        observe_http_request(route_path, 500)
+        raise
+    observe_http_request(route_path, response.status_code)
+    return response
+
+
+if settings.app_role in ("all", "rag"):
+    @app.get("/metrics", include_in_schema=False)
+    async def metrics() -> Response:
+        """
+        Prometheus 文本格式的指标快照。
+
+        挂在顶层而不是 ``/api/v1`` 下：抓取端按约定直接请求 ``/metrics``，也不该被 API
+        的版本化节奏牵着走。``ingest`` 角色不挂 —— 它没有检索 / 问答指标。
+
+        :return: ``text/plain; version=0.0.4`` 格式的指标文本。
+        """
+        return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 @app.get("/health", tags=["health"])

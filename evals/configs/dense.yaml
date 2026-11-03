@@ -1,0 +1,16 @@
+# dense-only 基线（V0）：只走向量召回，不做关键词与融合。
+# 指标数字不写在这里 —— 全部由 scripts/eval_rag.py 实测后落进 evals/results/。
+name: dense
+retrieval_mode: dense
+# 实际取回的条数；检索指标按 top-5 / nDCG@10 计算
+top_k: 5
+# 服务端 hybrid 候选池大小（dense 模式下不生效，仅记录口径）
+candidate_k: 50
+filters:
+  # 只评真实文档语料，避免 18 万条 bench 数据干扰
+  source: ["web"]
+use_cache: false
+# 校准结论：负样本与正样本的 best_dense_score 重叠，没有阈值能在误拒率 <=5% 的前提下
+# 拒掉负样本；保持 null（不启用），报告里如实写拒答准确率为 0。
+score_threshold: null
+run_chat: true

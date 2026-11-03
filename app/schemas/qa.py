@@ -22,12 +22,23 @@ class SearchFilters(BaseModel):
 
 
 class SearchRequest(BaseModel):
-    """检索请求体。"""
+    """检索请求体。
+
+    三个可选覆盖字段都带默认值，老客户端不必改请求就能继续用：
+
+    - ``retrieval_mode``：按次覆盖服务端的 ``RETRIEVAL_MODE``；
+    - ``use_cache``：评测传 ``False``，连 query embedding 缓存也一并关掉，保证可复现；
+    - ``score_threshold``：**检索接口本身不拒答**，该字段只为与 ``/chat/stream``
+      保持同一套请求形状而接收，``/search`` 会忽略它。
+    """
 
     # 上限 2000 字符：query 要送去做 embedding，不设上限等于把成本交给调用方
     query: str = Field(..., min_length=1, max_length=2000)
     top_k: int = Field(5, ge=1, le=50)
     filters: SearchFilters | None = None
+    retrieval_mode: Literal["dense", "hybrid"] | None = None
+    use_cache: bool = True
+    score_threshold: float | None = None
 
 
 class RetrievalResult(BaseModel):
@@ -46,21 +57,41 @@ class RetrievalResult(BaseModel):
 
 
 class SearchResponse(BaseModel):
-    """检索响应：结果列表 + 耗时 + 本次使用的 embedding 模型。"""
+    """检索响应：结果列表 + 耗时 + 本次使用的 embedding 模型。
+
+    新增字段让调用方（评测脚本 / 前端）能判断这次到底走了哪条路径：
+
+    - ``retrieval_mode``：实际使用的模式（关键词索引缺失时会从 hybrid 退回 dense）；
+    - ``score_type``：``cosine``（dense）或 ``rrf``（hybrid 融合分）；
+    - ``best_dense_score``：dense 候选第一条的余弦分，也是问答拒答阈值的比较对象；
+    - ``keyword_hits``：关键词一路返回的条数（dense 模式恒为 0）。
+    """
 
     results: list[RetrievalResult]
     latency_ms: int
     embedding_model: str
+    retrieval_mode: str = "dense"
+    score_type: Literal["cosine", "rrf"] = "cosine"
+    best_dense_score: float = 0.0
+    keyword_hits: int = 0
 
 
 class ChatRequest(BaseModel):
-    """流式问答请求体。"""
+    """流式问答请求体。
+
+    与 ``SearchRequest`` 一样支持按次覆盖：``retrieval_mode`` / ``use_cache`` /
+    ``score_threshold``。``score_threshold`` 会覆盖服务端阈值，用于评测集校准；
+    传 ``None`` 时仍读 ``settings.retrieval_score_threshold``。
+    """
 
     question: str = Field(..., min_length=1, max_length=2000)
     top_k: int = Field(5, ge=1, le=50)
     filters: SearchFilters | None = None
     # 目前只回显给前端做会话关联，服务端不保存多轮上下文
     session_id: str | None = None
+    retrieval_mode: Literal["dense", "hybrid"] | None = None
+    use_cache: bool = True
+    score_threshold: float | None = None
 
 
 class Citation(BaseModel):

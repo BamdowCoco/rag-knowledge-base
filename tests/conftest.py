@@ -78,6 +78,17 @@ async def prepare_database():
 
     await init_models()          # 用 app 自己的 engine（已指向测试库）建表
 
+    # 测试库不走 Alembic，``create_all`` 也不会建 FULLTEXT 索引 —— 这里补上迁移里的
+    # 同一条 DDL。库每次 DROP 重建，所以索引不可能已存在，不必 IF NOT EXISTS
+    # （MySQL 的 ADD FULLTEXT INDEX 也不支持该子句）。
+    async with engine.begin() as conn:
+        await conn.execute(
+            text(
+                "ALTER TABLE document_chunk "
+                "ADD FULLTEXT INDEX ft_chunk_content (content) WITH PARSER ngram"
+            )
+        )
+
     yield
 
     await engine.dispose()

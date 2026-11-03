@@ -6,3 +6,5 @@ pytest>=8
 pytest-asyncio>=0.24
 # 0.28 起 AsyncClient 不再接受 app= 简写，测试里显式用 ASGITransport
 httpx>=0.28.1
+# 评测配置（evals/configs/*.yaml）：test 镜像同时承载 compose 的 eval 服务
+pyyaml>=6

@@ -1,0 +1,2188 @@
+{
+  "environment": {
+    "date": "2026-11-03",
+    "timestamp": "2026-11-03T01:13:49+08:00",
+    "git_commit": "fbcffd0",
+    "base_url": "http://localhost:8001",
+    "config": "hybrid",
+    "retrieval_mode": "hybrid",
+    "split": "dev",
+    "question_count": 35,
+    "runs": 2,
+    "concurrency": 1,
+    "top_k": 5,
+    "candidate_k": 50,
+    "use_cache": false,
+    "score_threshold": null,
+    "filters": {
+      "source": [
+        "web"
+      ]
+    },
+    "retrieval_only": false,
+    "embedding_model": "BAAI/bge-small-zh-v1.5",
+    "embedding_models_seen": [
+      "BAAI/bge-small-zh-v1.5"
+    ],
+    "llm_model": "extractive",
+    "llm_provider": "extractive",
+    "prompt_version": "1",
+    "python": "3.13.3",
+    "worktree_dirty": true
+  },
+  "config": {
+    "name": "hybrid",
+    "retrieval_mode": "hybrid",
+    "top_k": 5,
+    "candidate_k": 50,
+    "filters": {
+      "source": [
+        "web"
+      ]
+    },
+    "use_cache": false,
+    "score_threshold": null,
+    "run_chat": true
+  },
+  "corpus": {
+    "source": [
+      "web"
+    ],
+    "documents": 141,
+    "chunks": 855,
+    "embedding_model": "BAAI/bge-small-zh-v1.5",
+    "dim": 512
+  },
+  "summary": {
+    "retrieval": {
+      "recall_at_5": 1.0,
+      "evidence_recall_at_5": 0.984375,
+      "mrr": 0.932292,
+      "ndcg_at_10": 0.94076,
+      "n_questions": 32
+    },
+    "generation": {
+      "citation_precision": 0.391667,
+      "citation_recall": 0.984375,
+      "citation_coverage": 1.0,
+      "refusal_accuracy": 0.0,
+      "false_refusal_rate": 0.0,
+      "n_negative": 3,
+      "n_positive": 32,
+      "n_answers_with_citations": 32,
+      "degraded_rate": 0.0,
+      "cache_hit_runs": 0
+    },
+    "performance_ms": {
+      "retrieval_p50": 31.5,
+      "retrieval_p95": 383.35,
+      "first_token_p50": 37.5,
+      "first_token_p95": 415.6,
+      "chat_total_p50": 43.5,
+      "chat_total_p95": 418.65
+    }
+  },
+  "questions": [
+    {
+      "id": "q-g1-001",
+      "question": "FastAPI 默认提供的两个交互式 API 文档界面分别由哪个工具渲染，它们的访问路径是什么？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/",
+        "https://fastapi.tiangolo.com/zh/tutorial/first-steps/"
+      ],
+      "reference_answer": "默认的 `/docs` 由 Swagger UI 提供，`/redoc` 由 ReDoc 提供；两者都是根据 OpenAPI 模式自动生成的。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/",
+        "https://fastapi.tiangolo.com/zh/advanced/using-request-directly/",
+        "https://fastapi.tiangolo.com/zh/tutorial/path-params/",
+        "https://fastapi.tiangolo.com/zh/advanced/templates/",
+        "https://fastapi.tiangolo.com/zh/how-to/separate-openapi-schemas/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 306.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.67931545,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 0.5,
+        "mrr": 1.0,
+        "ndcg_at_10": 0.6131471927654584
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：FastAPI\n来源：web\n内容：个路径都接受 GET 操作(也称为 HTTP 方法)。\n- 路径 /items/{item_id} 有一个应为 int 的路径参数 item_id。\n- 路径 /items/{item_id} 有一个可选的 str 类型查询参数 q。\n交互式 API 文档¶\n现在访问 http://127.0.0.1:8000/docs。\n你会看到自动生成的交互式 API 文档(由 Swagger UI 提供):\n可选的 API 文档¶\n然后访问 http://127.0.0.1:8000/redoc。\n你会看到另一个自动生成的文档(由 ReDoc 提供):\n示例升级¶\n现在修改 main.py 文件来接收来…\n\n[2] 标题：直接使用 Request\n来源：web\n内容：直接使用 Request¶\n至此,我们已经使用多种类型声明了请求的各种组件。\n并从以下对象中提取数据:\n- 路径参数\n- 请求头\n- Cookies\n- 等\nFastAPI 使用这种方式验证数据、转换数据,并自动生成 API 文档。\n但有时,我们也需要直接访问 Request 对象。\nRequest 对象的细节¶\n实际上,FastAPI 的底层是 Starlette,FastAPI 只不过是在 Starlette 顶层提供了一些工具,所以能直接使用 Starlette 的 Request 对象。\n但直接从 Request 对象提取数据时(例如,读取请求体),这些数据不会被 FastAPI 验证…\n\n[3] 标题：路径参数\n来源：web\n内容：比如: http://127.0.0.1:8000/items/4.2\n提示\nFastAPI 使用同样的 Python 类型声明实现了数据校验。\n注意,上面的错误清晰地指出了未通过校验的具体位置。\n这在开发调试与 API 交互的代码时非常有用。\n文档¶\n访问 http://127.0.0.1:8000/docs,查看自动生成的交互式 API 文档:\n提示\n还是使用 Python 类型声明,FastAPI 提供了(集成 Swagger UI 的)自动交互式文档。\n注意,路径参数的类型是整数。\n基于标准的好处,备选文档¶\nFastAPI 使用 OpenAPI 生成概图,所以能兼容很多工具。\n因此,…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/",
+          "https://fastapi.tiangolo.com/zh/advanced/using-request-directly/",
+          "https://fastapi.tiangolo.com/zh/tutorial/path-params/",
+          "https://fastapi.tiangolo.com/zh/advanced/templates/",
+          "https://fastapi.tiangolo.com/zh/how-to/separate-openapi-schemas/"
+        ],
+        "refused": false,
+        "citation_precision": 0.2,
+        "citation_recall": 0.5,
+        "first_token_ms_p50": 400.0,
+        "total_ms_p50": 403.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2710,
+          "completion_tokens": 637,
+          "total_tokens": 3347,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-002",
+      "question": "FastAPI 宣称的高性能主要归功于哪两个库？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/"
+      ],
+      "reference_answer": "FastAPI 的高性能主要归功于 Starlette 和 Pydantic；TechEmpower 的基准测试显示，运行在 Uvicorn 下的 FastAPI 是最快的 Python 框架之一。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/",
+        "https://fastapi.tiangolo.com/zh/advanced/custom-response/",
+        "https://fastapi.tiangolo.com/zh/how-to/custom-request-and-route/",
+        "https://fastapi.tiangolo.com/zh/",
+        "https://fastapi.tiangolo.com/zh/advanced/templates/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 20.5,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.58889925,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：FastAPI\n来源：web\n内容：FastAPI Conf '26 October 28, 2026 Amsterdam, NL All about FastAPI, right from the source. Learn more\nFastAPI¶\nFastAPI 框架,高性能,易于学习,高效编码,生产可用\n文档: https://fastapi.tiangolo.com/zh\n源码: https://github.com/fastapi/fastapi\nFastAPI 是一个用于构建 API 的现代、快速(高性能)的 Web 框架,使用 Python 并基于标准的 Python 类型提示。\n关键特性:\n- 快速:极高性能…\n\n[2] 标题：自定义响应 - HTML、流、文件等\n来源：web\n内容：JSON 库序列化为字节。\nJSON 性能¶\n简而言之,如果你想要获得最大性能,请使用响应模型,并且不要在 路径操作装饰器 中声明 response_class。\n# Code above omitted 👆\n@app.post(\"/items/\")\nasync def create_item(item: Item) -> Item:\nreturn item\n# Code below omitted 👇\n👀 Full file preview\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel\napp = FastAPI()\nc…\n\n[3] 标题：自定义 Request 和 APIRoute 类\n来源：web\n内容：.routing import APIRoute\nclass ValidationErrorLoggingRoute(APIRoute):\ndef get_route_handler(self) -> Callable:\noriginal_route_handler = super().get_route_handler()\nasync def custom_route_handler(request: Request) -> Response:\ntry:\nreturn await original_route_handler(request)\nexcept RequestValidation…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/",
+          "https://fastapi.tiangolo.com/zh/advanced/custom-response/",
+          "https://fastapi.tiangolo.com/zh/how-to/custom-request-and-route/",
+          "https://fastapi.tiangolo.com/zh/",
+          "https://fastapi.tiangolo.com/zh/advanced/templates/"
+        ],
+        "refused": false,
+        "citation_precision": 0.25,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 30.5,
+        "total_ms_p50": 37.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2651,
+          "completion_tokens": 408,
+          "total_tokens": 3059,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-003",
+      "question": "在 FastAPI 中，如果把路径操作函数用普通 `def` 而不是 `async def` 声明，FastAPI 会怎样执行它？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/async/"
+      ],
+      "reference_answer": "FastAPI 会把它放到外部线程池中运行并等待结果，而不是直接调用，因为普通 `def` 函数会阻塞服务器。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/async/",
+        "https://fastapi.tiangolo.com/zh/async/",
+        "https://fastapi.tiangolo.com/zh/async/",
+        "https://fastapi.tiangolo.com/zh/tutorial/dependencies/",
+        "https://fastapi.tiangolo.com/zh/tutorial/first-steps/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 435.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.7300997,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：并发 async / await\n来源：web\n内容：路径操作函数¶\n当你使用 def 而不是 async def 来声明一个路径操作函数时,它运行在外部的线程池中并等待其结果,而不是直接调用(因为它会阻塞服务器)。\n如果你使用过另一个不以上述方式工作的异步框架,并且你习惯于用普通的 def 定义普通的仅计算路径操作函数,以获得微小的性能增益(大约 100 纳秒),请注意,在 FastAPI 中,效果将完全相反。在这些情况下,最好使用 async def,除非路径操作函数内使用执行阻塞 I/O 的代码。\n在这两种情况下,FastAPI 很可能仍然会更快(或至少与之前的框架相当)。\n依赖¶\n这同样适用于依赖。如果一个依赖是标准的 def 函数而不是…\n\n[2] 标题：并发 async / await\n来源：web\n内容：(比如接收另一个请求)。\n要使 await 工作,它必须位于支持这种异步机制的函数内。因此,只需使用 async def 声明它:\nasync def get_burgers(number: int):\n# 执行一些异步操作来制作汉堡\nreturn burgers\n...而不是 def:\n# 这不是异步的\ndef get_sequential_burgers(number: int):\n# 执行一些顺序操作来制作汉堡\nreturn burgers\n使用 async def,Python 就知道在该函数中,它将遇上 await,并且它可以“暂停”⏸ 执行该函数,直至执行其他操作 🔀 后回来。\n当…\n\n[3] 标题：并发 async / await\n来源：web\n内容：并发 async / await¶\n有关路径操作函数的 async def 语法以及异步代码、并发和并行的一些背景知识。\n赶时间吗?¶\nTL;DR:\n如果你正在使用第三方库,它们会告诉你使用 await 关键字来调用它们,就像这样:\nresults = await some_library()\n然后,通过 async def 声明你的 路径操作函数:\n@app.get(\"/\")\nasync def read_results():\nresults = await some_library()\nreturn results\n注意\n你只能在被 async def 创建的函数内使用 await。\n如果…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/async/",
+          "https://fastapi.tiangolo.com/zh/async/",
+          "https://fastapi.tiangolo.com/zh/async/",
+          "https://fastapi.tiangolo.com/zh/tutorial/dependencies/",
+          "https://fastapi.tiangolo.com/zh/tutorial/first-steps/"
+        ],
+        "refused": false,
+        "citation_precision": 0.3333333333333333,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 495.5,
+        "total_ms_p50": 497.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2603,
+          "completion_tokens": 659,
+          "total_tokens": 3262,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-004",
+      "question": "FastAPI 如何区分一个函数参数是路径参数还是查询参数？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params/"
+      ],
+      "reference_answer": "与路径模板中 `{...}` 占位符同名的参数是路径参数；其余参数会被自动解释为查询参数。FastAPI 通过参数名进行检测，声明顺序并不重要。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params/",
+        "https://fastapi.tiangolo.com/zh/tutorial/body/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 294.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.7220258,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：查询参数\n来源：web\n内容：查询参数¶\n声明的参数不是路径参数时,路径操作函数会把该参数自动解释为“查询”参数。\nfrom fastapi import FastAPI\napp = FastAPI()\nfake_items_db = [{\"item_name\": \"Foo\"}, {\"item_name\": \"Bar\"}, {\"item_name\": \"Baz\"}]\n@app.get(\"/items/\")\nasync def read_item(skip: int = 0, limit: int = 10):\nreturn fake_items_db[skip : skip + limit]\n查询字符串是键值对的集合,这些…\n\n[2] 标题：请求体\n来源：web\n内容：,而声明为 Pydantic 模型的函数参数应该从请求体中获取。\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel\nclass Item(BaseModel):\nname: str\ndescription: str | None = None\nprice: float\ntax: float | None = None\napp = FastAPI()\n@app.put(\"/items/{item_id}\")\nasync def update_item(item_id: int, item: Item):\nreturn {\"ite…\n\n[3] 标题：查询参数\n来源：web\n内容：选参数¶\n同理,把默认值设为 None 即可声明可选的查询参数:\nfrom fastapi import FastAPI\napp = FastAPI()\n@app.get(\"/items/{item_id}\")\nasync def read_item(item_id: str, q: str | None = None):\nif q:\nreturn {\"item_id\": item_id, \"q\": q}\nreturn {\"item_id\": item_id}\n本例中,查询参数 q 是可选的,默认值为 None。\n提示\n注意,FastAPI 可以识别出 item_id 是路径参数,q 不是路径…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/query-params/",
+          "https://fastapi.tiangolo.com/zh/tutorial/body/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-params/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-params/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/"
+        ],
+        "refused": false,
+        "citation_precision": 0.3333333333333333,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 307.5,
+        "total_ms_p50": 312.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2696,
+          "completion_tokens": 401,
+          "total_tokens": 3097,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-005",
+      "question": "用 Pydantic 模型声明请求体时，模型字段是必填还是可选由什么决定？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/body/"
+      ],
+      "reference_answer": "带有默认值的模型属性是可选的，没有默认值的属性是必填的；把默认值设为 `None` 即可让该字段变为可选。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/body/",
+        "https://fastapi.tiangolo.com/zh/tutorial/body/",
+        "https://fastapi.tiangolo.com/zh/tutorial/body-multiple-params/",
+        "https://fastapi.tiangolo.com/zh/tutorial/body-multiple-params/",
+        "https://fastapi.tiangolo.com/zh/tutorial/body/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 26.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6560935,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：请求体\n来源：web\n内容：,而声明为 Pydantic 模型的函数参数应该从请求体中获取。\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel\nclass Item(BaseModel):\nname: str\ndescription: str | None = None\nprice: float\ntax: float | None = None\napp = FastAPI()\n@app.put(\"/items/{item_id}\")\nasync def update_item(item_id: int, item: Item):\nreturn {\"ite…\n\n[2] 标题：请求体\n来源：web\n内容：请求体¶\n当你需要从客户端(比如浏览器)向你的 API 发送数据时,会把它作为请求体发送。\n请求体是客户端发送给你的 API 的数据。响应体是你的 API 发送给客户端的数据。\n你的 API 几乎总是需要发送响应体。但客户端不一定总是要发送请求体,有时它们只请求某个路径,可能带一些查询参数,但不会发送请求体。\n使用 Pydantic 模型来声明请求体,能充分利用它的功能和优点。\n注意\n发送数据应使用以下之一:POST(最常见)、PUT、DELETE 或 PATCH。\n规范中没有定义用 GET 请求发送请求体的行为,但 FastAPI 仍支持这种方式,只用于非常复杂/极端的用例。\n由于不推荐,在…\n\n[3] 标题：请求体 - 多个参数\n来源：web\n内容：请求体 - 多个参数¶\n既然我们已经知道了如何使用 Path 和 Query,下面让我们来了解一下请求体声明的更高级用法。\n混合使用 Path、Query 和请求体参数¶\n首先,毫无疑问地,你可以随意地混合使用 Path、Query 和请求体参数声明,FastAPI 会知道该如何处理。\n你还可以通过将默认值设置为 None 来将请求体参数声明为可选参数:\nfrom typing import Annotated\nfrom fastapi import FastAPI, Path\nfrom pydantic import BaseModel\napp = FastAPI()\nclass Item(…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/body/",
+          "https://fastapi.tiangolo.com/zh/tutorial/body/",
+          "https://fastapi.tiangolo.com/zh/tutorial/body-multiple-params/",
+          "https://fastapi.tiangolo.com/zh/tutorial/body-multiple-params/",
+          "https://fastapi.tiangolo.com/zh/tutorial/body/"
+        ],
+        "refused": false,
+        "citation_precision": 0.5,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 29.5,
+        "total_ms_p50": 31.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2683,
+          "completion_tokens": 547,
+          "total_tokens": 3230,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-006",
+      "question": "FastAPI 如何避免把密码之类的敏感字段返回给客户端？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/response-model/"
+      ],
+      "reference_answer": "可以给路径操作声明一个不含敏感字段的输出模型作为 `response_model`，FastAPI 会按该模型过滤返回数据，只输出模型中声明的字段，即使函数返回的对象包含更多字段。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/response-model/",
+        "https://fastapi.tiangolo.com/zh/tutorial/response-model/",
+        "https://fastapi.tiangolo.com/zh/tutorial/request-form-models/",
+        "https://fastapi.tiangolo.com/zh/tutorial/security/simple-oauth2/",
+        "https://fastapi.tiangolo.com/zh/tutorial/security/simple-oauth2/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 24.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6641778,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：响应模型 - 返回类型\n来源：web\n内容：@app.post(\"/user/\")\nasync def create_user(user: UserIn) -> UserIn:\nreturn user\n注意\n要使用 EmailStr,首先安装 email-validator。\n将它添加到你的项目中:\n$ uv add email-validator\n或者使用:\n$ uv add \"pydantic[email]\"\n我们使用这个模型来声明输入,同时也用相同的模型来声明输出:\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel, EmailStr\napp = FastAPI(…\n\n[2] 标题：响应模型 - 返回类型\n来源：web\n内容：Any:\nreturn user\n这里,即使我们的路径操作函数返回的是包含密码的同一个输入用户:\nfrom typing import Any\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel, EmailStr\napp = FastAPI()\nclass UserIn(BaseModel):\nusername: str\npassword: str\nemail: EmailStr\nfull_name: str | None = None\nclass UserOut(BaseModel):\nusername: str\nemail…\n\n[3] 标题：表单模型\n来源：web\n内容：, \"notification\": notification, \"token\": token}\n在同一个表单中发送所有字段。例如,发送 contact_type=person、name=Rick、notification_type=email、email=rick@example.com 和 token=secret。\n省略通知字段即可让 notification 保持为 None。\n表单模型与文件¶\n你也可以将表单模型与文件参数组合使用。\nfrom typing import Annotated\nfrom fastapi import FastAPI, Form, UploadFile\nfr…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/response-model/",
+          "https://fastapi.tiangolo.com/zh/tutorial/response-model/",
+          "https://fastapi.tiangolo.com/zh/tutorial/request-form-models/",
+          "https://fastapi.tiangolo.com/zh/tutorial/security/simple-oauth2/",
+          "https://fastapi.tiangolo.com/zh/tutorial/security/simple-oauth2/"
+        ],
+        "refused": false,
+        "citation_precision": 0.3333333333333333,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 21.0,
+        "total_ms_p50": 22.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2740,
+          "completion_tokens": 390,
+          "total_tokens": 3130,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-007",
+      "question": "在 FastAPI 中把依赖项交给 `Depends` 时，对传入的参数有什么要求？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/dependencies/"
+      ],
+      "reference_answer": "`Depends` 只接收一个参数，而且必须是类似函数的可调用对象；应把可调用对象本身传进去，不要在末尾加括号调用它。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/dependencies/sub-dependencies/",
+        "https://fastapi.tiangolo.com/zh/tutorial/dependencies/sub-dependencies/",
+        "https://fastapi.tiangolo.com/zh/tutorial/dependencies/",
+        "https://fastapi.tiangolo.com/zh/tutorial/dependencies/dependencies-in-path-operation-decorators/",
+        "https://fastapi.tiangolo.com/zh/tutorial/dependencies/global-dependencies/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 23.5,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.64903647,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg_at_10": 0.6309297535714575
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：子依赖项\n来源：web\n内容：一个依赖项函数(一个“dependable”),并同时为它自身再声明一个依赖项(因此它同时也是一个“dependant”):\nfrom typing import Annotated\nfrom fastapi import Cookie, Depends, FastAPI\napp = FastAPI()\ndef query_extractor(q: str | None = None):\nreturn q\ndef query_or_cookie_extractor(\nq: Annotated[str, Depends(query_extractor)],\nlast_query: Annotat…\n\n[2] 标题：子依赖项\n来源：web\n内容：子依赖项¶\nFastAPI 支持创建含子依赖项的依赖项。\n并且,可以按需声明任意深度的子依赖项嵌套层级。\nFastAPI 负责处理解析不同深度的子依赖项。\n第一层依赖项 “dependable”¶\n你可以创建一个第一层依赖项(“dependable”),如下:\nfrom typing import Annotated\nfrom fastapi import Cookie, Depends, FastAPI\napp = FastAPI()\ndef query_extractor(q: str | None = None):\nreturn q\ndef query_or_cookie_extract…\n\n[3] 标题：依赖项\n来源：web\n内容：users/\")\nasync def read_users(commons: dict = Depends(common_parameters)):\nreturn commons\n虽然你在函数参数中使用 Depends 的方式与 Body、Query 等相同,但 Depends 的工作方式略有不同。\n这里只能给 Depends 传入一个参数。\n这个参数必须是类似函数的可调用对象。\n你不需要直接调用它(不要在末尾加括号),只需将其作为参数传给 Depends()。\n该函数接收的参数与路径操作函数的参数相同。\n提示\n下一章会介绍除了函数之外,还有哪些“东西”可以用作依赖项。\n接收到新的请求时,Fa…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/dependencies/sub-dependencies/",
+          "https://fastapi.tiangolo.com/zh/tutorial/dependencies/sub-dependencies/",
+          "https://fastapi.tiangolo.com/zh/tutorial/dependencies/",
+          "https://fastapi.tiangolo.com/zh/tutorial/dependencies/dependencies-in-path-operation-decorators/",
+          "https://fastapi.tiangolo.com/zh/tutorial/dependencies/global-dependencies/"
+        ],
+        "refused": false,
+        "citation_precision": 0.25,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 26.5,
+        "total_ms_p50": 29.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2738,
+          "completion_tokens": 507,
+          "total_tokens": 3245,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-008",
+      "question": "当一个响应的类型可以属于多个模型中的任意一种时，应该怎样声明？OpenAPI 中如何表示？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/extra-models/"
+      ],
+      "reference_answer": "可以使用 `typing.Union` 声明多个候选响应类型，OpenAPI 中会表示为 `anyOf`；定义时要把更具体的类型写在前面，例如 `Union[PlaneItem, CarItem]`。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/extra-models/",
+        "https://fastapi.tiangolo.com/zh/python-types/",
+        "https://fastapi.tiangolo.com/zh/tutorial/body-nested-models/",
+        "https://fastapi.tiangolo.com/zh/advanced/additional-responses/",
+        "https://fastapi.tiangolo.com/zh/advanced/custom-response/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 91.5,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.60529685,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：更多模型\n来源：web\n内容：user_in.model_dump(), hashed_password=hashed_password)\nprint(\"User saved! ..not really\")\nreturn user_in_db\n@app.post(\"/user/\", response_model=UserOut)\nasync def create_user(user_in: UserIn):\nuser_saved = fake_save_user(user_in)\nreturn user_saved\nUnion 或 anyOf¶\n响应可以声明为两个或多个类型的 Union,即该响应可以是这些类型中的任意一种…\n\n[2] 标题：Python 类型提示简介\n来源：web\n内容：int 也可以是 str。\n定义时使用竖线(|)把两种类型分开。\n这称为“联合类型”(union),因为变量可以是这两类类型集合的并集中的任意一个。\ndef process_item(item: int | str):\nprint(item)\n这表示 item 可以是 int 或 str。\n可能为 None¶\n你可以声明一个值的类型是某种类型(比如 str),但它也可能是 None。\ndef say_hi(name: str | None = None):\nif name is not None:\nprint(f\"Hey {name}!\")\nelse:\nprint(\"Hello World\")…\n\n[3] 标题：请求体 - 嵌套模型\n来源：web\n内容：请求体 - 嵌套模型¶\n使用 FastAPI,你可以定义、校验、记录文档并使用任意深度嵌套的模型(归功于Pydantic)。\nList 字段¶\n你可以将一个属性定义为一个子类型。例如,Python list:\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel\napp = FastAPI()\nclass Item(BaseModel):\nname: str\ndescription: str | None = None\nprice: float\ntax: float | None = None\ntags: list = []\n@a…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/extra-models/",
+          "https://fastapi.tiangolo.com/zh/python-types/",
+          "https://fastapi.tiangolo.com/zh/tutorial/body-nested-models/",
+          "https://fastapi.tiangolo.com/zh/advanced/additional-responses/",
+          "https://fastapi.tiangolo.com/zh/advanced/custom-response/"
+        ],
+        "refused": false,
+        "citation_precision": 0.2,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 100.0,
+        "total_ms_p50": 104.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2721,
+          "completion_tokens": 445,
+          "total_tokens": 3166,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-009",
+      "question": "HTTP 状态码 201、204 和 404 分别代表什么含义？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/response-status-code/"
+      ],
+      "reference_answer": "201 表示“已创建”，通常用于在数据库中新建记录后返回；204 表示“无内容”，响应不能包含响应体；404 表示“未找到”。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/how-to/authentication-error-status-code/",
+        "https://fastapi.tiangolo.com/zh/tutorial/response-status-code/",
+        "https://fastapi.tiangolo.com/zh/reference/status/",
+        "https://fastapi.tiangolo.com/zh/tutorial/handling-errors/",
+        "https://fastapi.tiangolo.com/zh/advanced/security/http-basic-auth/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 107.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6280483,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 0.5,
+        "ndcg_at_10": 0.6309297535714575
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：使用旧的 403 认证错误状态码\n来源：web\n内容：使用旧的 403 认证错误状态码¶\n在 FastAPI 0.122.0 版本之前,当内置的安全工具在认证失败后向客户端返回错误时,会使用 HTTP 状态码 403 Forbidden。\n从 FastAPI 0.122.0 版本开始,它们改用更合适的 HTTP 状态码 401 Unauthorized,并在响应中返回合理的 WWW-Authenticate 头,遵循 HTTP 规范,RFC 7235、RFC 9110。\n但如果由于某些原因你的客户端依赖旧行为,你可以在你的安全类中重写方法 make_not_authenticated_error 来回退到旧行为。\n例如,你可以创建一个 HTTPB…\n\n[2] 标题：响应状态码\n来源：web\n内容：响应状态码¶\n与指定响应模型的方式相同,在以下任意路径操作中,可以使用 status_code 参数声明用于响应的 HTTP 状态码:\n- @app.get()\n- @app.post()\n- @app.put()\n- @app.delete()\n- 等。\nfrom fastapi import FastAPI\napp = FastAPI()\n@app.post(\"/items/\", status_code=201)\nasync def create_item(name: str):\nreturn {\"name\": name}\n注意\n注意,status_code 是(get、post 等)装饰…\n\n[3] 标题：Status Codes\n来源：web\n内容：308\n\nmodule-attribute\n\nHTTP_400_BAD_REQUEST = 400\n\nmodule-attribute\n\nHTTP_401_UNAUTHORIZED = 401\n\nmodule-attribute\n\nHTTP_402_PAYMENT_REQUIRED = 402\n\nmodule-attribute\n\nmodule-attribute\n\nmodule-attribute\n\nHTTP_405_METHOD_NOT_ALLOWED = 405\n\nmodule-attribute\n\nHTTP_406_NOT_ACCEPTABLE = 406\n\nmodule-attrib…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/how-to/authentication-error-status-code/",
+          "https://fastapi.tiangolo.com/zh/tutorial/response-status-code/",
+          "https://fastapi.tiangolo.com/zh/reference/status/",
+          "https://fastapi.tiangolo.com/zh/tutorial/handling-errors/",
+          "https://fastapi.tiangolo.com/zh/advanced/security/http-basic-auth/"
+        ],
+        "refused": false,
+        "citation_precision": 0.2,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 93.0,
+        "total_ms_p50": 97.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2720,
+          "completion_tokens": 467,
+          "total_tokens": 3187,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-010",
+      "question": "怎样声明一个可选的查询参数 `q`，并限制它的最大长度为 50 个字符？",
+      "type": "procedural",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params-str-validations/"
+      ],
+      "reference_answer": "使用 `q: Annotated[str | None, Query(max_length=50)] = None`：默认值 `None` 让参数可选，`Query(max_length=50)` 添加最大长度校验。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params-str-validations/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params-str-validations/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 28.5,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6479969,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：查询参数和字符串校验\n来源：web\n内容：和 \"null\"。发送 ?q= 传入的是空字符串,在此示例中无法通过 min_length=3 校验。\n要允许客户端省略 q 并使用 None 作为其值,请将其默认值设为 None:\nq: Annotated[str | None, Query(min_length=3)] = None\n与查询参数不同,JSON 请求体可以包含显式的 null 值。\n查询参数列表 / 多个值¶\n当你用 Query 显式地定义查询参数时,你还可以声明它接收一个值列表,换句话说,接收多个值。\n例如,要声明一个可在 URL 中出现多次的查询参数 q,你可以这样写:\nfrom typing import Annota…\n\n[2] 标题：查询参数模型\n来源：web\n内容：查询参数模型¶\n如果你有一组具有相关性的查询参数,你可以创建一个 Pydantic 模型来声明它们。\n这将允许你在多个地方去复用模型,并且一次性为所有参数声明验证和元数据。😎\n注意\nFastAPI 从 0.115.0 版本开始支持这个特性。🤓\n使用 Pydantic 模型的查询参数¶\n在一个 Pydantic 模型中声明你需要的查询参数,然后将参数声明为 Query:\nfrom typing import Annotated, Literal\nfrom fastapi import FastAPI, Query\nfrom pydantic import BaseModel, Field\napp…\n\n[3] 标题：查询参数\n来源：web\n内容：选参数¶\n同理,把默认值设为 None 即可声明可选的查询参数:\nfrom fastapi import FastAPI\napp = FastAPI()\n@app.get(\"/items/{item_id}\")\nasync def read_item(item_id: str, q: str | None = None):\nif q:\nreturn {\"item_id\": item_id, \"q\": q}\nreturn {\"item_id\": item_id}\n本例中,查询参数 q 是可选的,默认值为 None。\n提示\n注意,FastAPI 可以识别出 item_id 是路径参数,q 不是路径…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/query-params-str-validations/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-params/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-params-str-validations/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-params/"
+        ],
+        "refused": false,
+        "citation_precision": 0.3333333333333333,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 29.0,
+        "total_ms_p50": 32.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2693,
+          "completion_tokens": 538,
+          "total_tokens": 3231,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-011",
+      "question": "如何给路径参数 `item_id` 添加“必须大于 0 且小于等于 1000”的数值约束？",
+      "type": "procedural",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/path-params-numeric-validations/"
+      ],
+      "reference_answer": "用 `Path` 声明数值约束，例如 `item_id: Annotated[int, Path(gt=0, le=1000)]`；`gt=0` 表示大于 0，`le=1000` 表示小于等于 1000。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/path-params-numeric-validations/",
+        "https://fastapi.tiangolo.com/zh/tutorial/path-params-numeric-validations/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params/",
+        "https://fastapi.tiangolo.com/zh/tutorial/path-params-numeric-validations/",
+        "https://fastapi.tiangolo.com/zh/tutorial/path-params-numeric-validations/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 269.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.70186204,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：路径参数和数值校验\n来源：web\n内容：/{item_id}\")\nasync def read_items(*, item_id: int = Path(title=\"The ID of the item to get\"), q: str):\nresults = {\"item_id\": item_id}\nif q:\nresults.update({\"q\": q})\nreturn results\n数值校验:大于等于¶\n使用 Query 和 Path(以及你稍后会看到的其他类)你可以声明数值约束。\n在这里,使用 ge=1 后,item_id 必须是一个整数,值要大于等于(greater than or equal)1。\nfrom typ…\n\n[2] 标题：路径参数和数值校验\n来源：web\n内容：查询参数 q\n- 使用 Path 声明路径参数 item_id\n- 让它们的顺序与上面不同\n- 不使用 Annotated\n...Python 为此有一个小的特殊语法。\n在函数的第一个参数位置传入 *。\nPython 不会对这个 * 做任何事,但它会知道之后的所有参数都应该作为关键字参数(键值对)来调用,也被称为 kwargs。即使它们没有默认值。\nfrom fastapi import FastAPI, Path\napp = FastAPI()\n@app.get(\"/items/{item_id}\")\nasync def read_items(*, item_id: int = Path(t…\n\n[3] 标题：查询参数\n来源：web\n内容：必选参数,因此要在 URL 中设置值:\nhttp://127.0.0.1:8000/items/foo-item?needy=sooooneedy\n...这样就正常了:\n{\n\"item_id\": \"foo-item\",\n\"needy\": \"sooooneedy\"\n}\n当然,把一些参数定义为必选,为另一些参数设置默认值,再把其它参数定义为可选,这些操作都是可以的:\nfrom fastapi import FastAPI\napp = FastAPI()\n@app.get(\"/items/{item_id}\")\nasync def read_user_item(\nitem_id: str, need…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/path-params-numeric-validations/",
+          "https://fastapi.tiangolo.com/zh/tutorial/path-params-numeric-validations/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-params/",
+          "https://fastapi.tiangolo.com/zh/tutorial/path-params-numeric-validations/",
+          "https://fastapi.tiangolo.com/zh/tutorial/path-params-numeric-validations/"
+        ],
+        "refused": false,
+        "citation_precision": 0.5,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 287.0,
+        "total_ms_p50": 290.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2762,
+          "completion_tokens": 504,
+          "total_tokens": 3266,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-012",
+      "question": "请求数据校验失败时，怎样用自己的处理器替换 FastAPI 默认的验证错误响应？",
+      "type": "procedural",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/handling-errors/"
+      ],
+      "reference_answer": "导入 `RequestValidationError`，用 `@app.exception_handler(RequestValidationError)` 注册一个接收 `Request` 和异常对象的处理函数，并返回自定义响应，例如状态码为 422 的 `JSONResponse`。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/handling-errors/",
+        "https://fastapi.tiangolo.com/zh/tutorial/handling-errors/",
+        "https://fastapi.tiangolo.com/zh/tutorial/handling-errors/",
+        "https://fastapi.tiangolo.com/zh/tutorial/response-model/",
+        "https://fastapi.tiangolo.com/zh/advanced/opentelemetry/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 285.5,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6711572,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：处理错误\n来源：web\n内容：Request 也是如此。\n覆盖默认异常处理器¶\nFastAPI 自带了一些默认异常处理器。\n当你触发 HTTPException,或者请求中包含无效数据时,这些处理器负责返回默认的 JSON 响应。\n你也可以用自己的处理器覆盖它们。\n覆盖请求验证异常¶\n请求中包含无效数据时,FastAPI 内部会触发 RequestValidationError。\n它也内置了该异常的默认处理器。\n要覆盖它,导入 RequestValidationError,并用 @app.exception_handler(RequestValidationError) 装饰你的异常处理器。\n异常处理器会接收 Reques…\n\n[2] 标题：处理错误\n来源：web\n内容：= {\"foo\": \"The Foo Wrestlers\"}\n@app.get(\"/items-header/{item_id}\")\nasync def read_item_header(item_id: str):\nif item_id not in items:\nraise HTTPException(\nstatus_code=404,\ndetail=\"Item not found\",\nheaders={\"X-Error\": \"There goes my error\"},\n)\nreturn {\"item\": items[item_id]}\n安装自定义异常处理器¶\n可以使用与 Starlet…\n\n[3] 标题：处理错误\n来源：web\n内容：获并处理它。\n本例中,为了在同一份代码中同时使用两个 HTTPException,将 Starlette 的异常重命名为 StarletteHTTPException:\nfrom starlette.exceptions import HTTPException as StarletteHTTPException\n复用 FastAPI 的异常处理器¶\n如果你想在使用该异常的同时使用 FastAPI 的相同默认异常处理器,可以从 fastapi.exception_handlers 导入并复用这些默认处理器:\nfrom fastapi import FastAPI, HTTPException\n…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/handling-errors/",
+          "https://fastapi.tiangolo.com/zh/tutorial/handling-errors/",
+          "https://fastapi.tiangolo.com/zh/tutorial/handling-errors/",
+          "https://fastapi.tiangolo.com/zh/tutorial/response-model/",
+          "https://fastapi.tiangolo.com/zh/advanced/opentelemetry/"
+        ],
+        "refused": false,
+        "citation_precision": 0.3333333333333333,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 317.5,
+        "total_ms_p50": 320.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2698,
+          "completion_tokens": 433,
+          "total_tokens": 3131,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-013",
+      "question": "怎样让 FastAPI 把单个 Pydantic 模型请求体放在 `item` 键下，而不是直接展开模型字段？",
+      "type": "procedural",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/body-multiple-params/"
+      ],
+      "reference_answer": "给该参数使用 `Body(embed=True)`，例如 `item: Item = Body(embed=True)`，FastAPI 就会期望请求体带有 `item` 键，并在其值中包含模型数据。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/body-multiple-params/",
+        "https://fastapi.tiangolo.com/zh/tutorial/body-fields/",
+        "https://fastapi.tiangolo.com/zh/tutorial/body-multiple-params/",
+        "https://fastapi.tiangolo.com/zh/tutorial/body-multiple-params/",
+        "https://fastapi.tiangolo.com/zh/tutorial/body/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 36.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.67973644,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：请求体 - 多个参数\n来源：web\n内容：User(BaseModel):\nusername: str\nfull_name: str | None = None\n@app.put(\"/items/{item_id}\")\nasync def update_item(\n*,\nitem_id: int,\nitem: Item,\nuser: User,\nimportance: int = Body(gt=0),\nq: str | None = None,\n):\nresults = {\"item_id\": item_id, \"item\": item, \"user\": user, \"importance\": importance}\nif q:\nr…\n\n[2] 标题：请求体 - 字段\n来源：web\n内容：请求体 - 字段¶\n与在路径操作函数中使用 Query、Path 、Body 声明校验与元数据的方式一样,可以使用 Pydantic 的 Field 在 Pydantic 模型内部声明校验和元数据。\n导入 Field¶\n首先,从 Pydantic 中导入 Field:\nfrom typing import Annotated\nfrom fastapi import Body, FastAPI\nfrom pydantic import BaseModel, Field\napp = FastAPI()\nclass Item(BaseModel):\nname: str\ndescription: st…\n\n[3] 标题：请求体 - 多个参数\n来源：web\n内容：请求体 - 多个参数¶\n既然我们已经知道了如何使用 Path 和 Query,下面让我们来了解一下请求体声明的更高级用法。\n混合使用 Path、Query 和请求体参数¶\n首先,毫无疑问地,你可以随意地混合使用 Path、Query 和请求体参数声明,FastAPI 会知道该如何处理。\n你还可以通过将默认值设置为 None 来将请求体参数声明为可选参数:\nfrom typing import Annotated\nfrom fastapi import FastAPI, Path\nfrom pydantic import BaseModel\napp = FastAPI()\nclass Item(…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/body-multiple-params/",
+          "https://fastapi.tiangolo.com/zh/tutorial/body-fields/",
+          "https://fastapi.tiangolo.com/zh/tutorial/body-multiple-params/",
+          "https://fastapi.tiangolo.com/zh/tutorial/body-multiple-params/",
+          "https://fastapi.tiangolo.com/zh/tutorial/body/"
+        ],
+        "refused": false,
+        "citation_precision": 0.3333333333333333,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 39.0,
+        "total_ms_p50": 43.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2736,
+          "completion_tokens": 443,
+          "total_tokens": 3179,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-014",
+      "question": "怎样声明一个可选的文件上传参数？",
+      "type": "procedural",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/request-files/"
+      ],
+      "reference_answer": "把参数类型声明为 `UploadFile | None` 并将默认值设为 `None`，或用 `bytes | None = File(default=None)`；这样未上传文件时参数为 `None`。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+        "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params/",
+        "https://fastapi.tiangolo.com/zh/tutorial/body/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 19.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6701107,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：请求文件\n来源：web\n内容：则,这些参数会被当作查询参数或请求体(JSON)参数。\n文件将作为「表单数据」上传。\n如果把路径操作函数参数的类型声明为 bytes,FastAPI 会为你读取文件,并以 bytes 的形式接收其内容。\n请注意,这意味着整个内容会存储在内存中,适用于小型文件。\n不过,在很多情况下,使用 UploadFile 会更有优势。\n含 UploadFile 的文件参数¶\n将文件参数的类型声明为 UploadFile:\nfrom typing import Annotated\nfrom fastapi import FastAPI, File, UploadFile\napp = FastAPI()\n@ap…\n\n[2] 标题：请求文件\n来源：web\n内容：请求文件¶\n你可以使用 File 定义由客户端上传的文件。\n导入 File¶\n从 fastapi 导入 File 和 UploadFile:\nfrom typing import Annotated\nfrom fastapi import FastAPI, File, UploadFile\napp = FastAPI()\n@app.post(\"/files/\")\nasync def create_file(file: Annotated[bytes, File()]):\nreturn {\"file_size\": len(file)}\n@app.post(\"/uploadfile/\")\nasyn…\n\n[3] 标题：查询参数\n来源：web\n内容：查询参数¶\n声明的参数不是路径参数时,路径操作函数会把该参数自动解释为“查询”参数。\nfrom fastapi import FastAPI\napp = FastAPI()\nfake_items_db = [{\"item_name\": \"Foo\"}, {\"item_name\": \"Bar\"}, {\"item_name\": \"Baz\"}]\n@app.get(\"/items/\")\nasync def read_item(skip: int = 0, limit: int = 10):\nreturn fake_items_db[skip : skip + limit]\n查询字符串是键值对的集合,这些…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+          "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-params/",
+          "https://fastapi.tiangolo.com/zh/tutorial/body/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-params/"
+        ],
+        "refused": false,
+        "citation_precision": 0.3333333333333333,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 22.5,
+        "total_ms_p50": 25.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2648,
+          "completion_tokens": 436,
+          "total_tokens": 3084,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-015",
+      "question": "用 PUT 和 PATCH 更新数据有什么区别？在 FastAPI 中实现 PATCH 部分更新通常怎么做？",
+      "type": "comparison",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/body-updates/",
+        "https://fastapi.tiangolo.com/zh/tutorial/body-updates/"
+      ],
+      "reference_answer": "PUT 是替换式更新，PATCH 用于只发送需要修改的字段、其余保持不变。实现 PATCH 时通常先用 `model_dump(exclude_unset=True)` 取出客户端显式设置的字段，再用 `model_copy(update=update_data)` 更新已存储的模型，最后用 `jsonable_encoder` 转成可保存的数据。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/body-updates/",
+        "https://fastapi.tiangolo.com/zh/tutorial/body-updates/",
+        "https://fastapi.tiangolo.com/zh/tutorial/body-updates/",
+        "https://fastapi.tiangolo.com/zh/tutorial/body-updates/",
+        "https://fastapi.tiangolo.com/zh/advanced/dataclasses/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 368.5,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.7334038,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：请求体 - 更新数据\n来源：web\n内容：请求体 - 更新数据¶\n用 PUT 替换式更新¶\n更新数据可以使用 HTTP PUT 操作。\n把输入数据转换为以 JSON 格式存储的数据(比如,使用 NoSQL 数据库时),可以使用 jsonable_encoder。例如,把 datetime 转换为 str。\nfrom fastapi import FastAPI\nfrom fastapi.encoders import jsonable_encoder\nfrom pydantic import BaseModel\napp = FastAPI()\nclass Item(BaseModel):\nname: str | None = None…\n\n[2] 标题：请求体 - 更新数据\n来源：web\n内容：行部分更新¶\n也可以使用 HTTP PATCH 操作对数据进行部分更新。\n也就是说,你只需发送想要更新的数据,其余数据保持不变。\n注意\nPATCH 没有 PUT 知名,也没那么常用。\n很多团队甚至只用 PUT 实现部分更新。\n你可以随意选择如何使用它们,FastAPI 不做任何限制。\n但本指南会大致展示它们的预期用法。\n使用 Pydantic 的 exclude_unset 参数¶\n如果要接收部分更新,建议在 Pydantic 模型的 .model_dump() 中使用 exclude_unset 参数。\n比如,item.model_dump(exclude_unset=True)。\n这会生成…\n\n[3] 标题：请求体 - 更新数据\n来源：web\n内容：数据放入 Pydantic 模型。\n- 生成不含输入模型默认值的 dict(使用 exclude_unset)。\n- 这样只会更新用户实际设置的值,而不会用模型中的默认值覆盖已存储的值。\n- 为已存储的模型创建副本,用接收到的部分更新数据更新其属性(使用 update 参数)。\n- 把模型副本转换为可存入数据库的形式(比如,使用 jsonable_encoder)。\n- 这类似于再次调用模型的 .model_dump() 方法,但会确保(并转换)值为可转换为 JSON 的数据类型,例如把 datetime 转换为 str。\n- 把数据保存至数据库。\n- 返回更新后的模型。\nfrom fasta…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/body-updates/",
+          "https://fastapi.tiangolo.com/zh/tutorial/body-updates/",
+          "https://fastapi.tiangolo.com/zh/tutorial/body-updates/",
+          "https://fastapi.tiangolo.com/zh/tutorial/body-updates/",
+          "https://fastapi.tiangolo.com/zh/advanced/dataclasses/"
+        ],
+        "refused": false,
+        "citation_precision": 0.5,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 361.5,
+        "total_ms_p50": 363.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2694,
+          "completion_tokens": 559,
+          "total_tokens": 3253,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-016",
+      "question": "给查询参数 `q` 添加元数据时，`Annotated[str, Query()] = 'rick'` 与旧的 `str = Query(default='rick')` 写法有什么区别？推荐哪种？",
+      "type": "comparison",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params-str-validations/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params-str-validations/"
+      ],
+      "reference_answer": "推荐使用 `Annotated` 写法：函数参数的默认值就是真正的默认值，可以不经 FastAPI 直接调用该函数，编辑器和运行时也能检查必填参数。旧写法在不经 FastAPI 调用时必须记得传参，否则会得到 `QueryInfo` 之类的对象而不是 `str`，且编辑器和 Python 都不会报错。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params-str-validations/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params-str-validations/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params-str-validations/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params-str-validations/",
+        "https://fastapi.tiangolo.com/zh/tutorial/path-params-numeric-validations/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 63.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.73067,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：查询参数和字符串校验\n来源：web\n内容：{\"items\": [{\"item_id\": \"Foo\"}, {\"item_id\": \"Bar\"}]}\nif q:\nresults.update({\"q\": q})\nreturn results\n🤓 Other versions and variants\nfrom typing import Annotated\nfrom fastapi import FastAPI, Query\napp = FastAPI()\n@app.get(\"/items/\")\nasync def read_items(q: Annotated[str | None, Query(max_length=50)] = No…\n\n[2] 标题：查询参数和字符串校验\n来源：web\n内容：Bar\"}]}\nif q:\nresults.update({\"q\": q})\nreturn results\n注意\nFastAPI 在 0.95.0 版本中添加了对 Annotated 的支持(并开始推荐使用)。\n如果你的版本更旧,使用 Annotated 会报错。\n在使用 Annotated 之前,请确保先升级 FastAPI 版本到至少 0.95.1。\n在 q 参数的类型中使用 Annotated¶\n还记得我之前在Python 类型简介中说过可以用 Annotated 给参数添加元数据吗?\n现在正是与 FastAPI 搭配使用它的时候。🚀\n我们之前的类型标注是:\nq: str | None …\n\n[3] 标题：查询参数和字符串校验\n来源：web\n内容：fastapi import FastAPI, Query\napp = FastAPI()\n@app.get(\"/items/\")\nasync def read_items(\nq: str | None = Query(\ndefault=None,\ntitle=\"Query string\",\ndescription=\"Query string for the items to search in the database that have a good match\",\nmin_length=3,\n),\n):\nresults = {\"items\": [{\"item_id\": \"Foo\"}, {…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/query-params-str-validations/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-params-str-validations/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-params-str-validations/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-params-str-validations/",
+          "https://fastapi.tiangolo.com/zh/tutorial/path-params-numeric-validations/"
+        ],
+        "refused": false,
+        "citation_precision": 0.5,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 73.0,
+        "total_ms_p50": 75.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2703,
+          "completion_tokens": 414,
+          "total_tokens": 3117,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-017",
+      "question": "FastAPI 文档中的“并发”和“并行”有什么区别？各自更适合什么场景？",
+      "type": "comparison",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/async/",
+        "https://fastapi.tiangolo.com/zh/async/"
+      ],
+      "reference_answer": "并发是在等待 I/O 时切换到其他任务，适合存在大量等待的 I/O 密集型场景，例如 Web API 等待网络请求；并行是多个处理器同时执行实际工作，适合 CPU 密集型任务，如图像处理、机器学习。在 Web 开发中通常并发更合适。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/async/",
+        "https://fastapi.tiangolo.com/zh/how-to/graphql/",
+        "https://fastapi.tiangolo.com/zh/async/",
+        "https://fastapi.tiangolo.com/zh/advanced/templates/",
+        "https://fastapi.tiangolo.com/zh/how-to/custom-request-and-route/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 21.5,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6776781,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：并发 async / await\n来源：web\n内容：给你的程序\n- 你的程序提供给系统的内容被写入磁盘\n- 一个 API 的远程调用\n- 一个数据库操作,直到完成\n- 一个数据库查询,直到返回结果\n- 等等。\n这个执行的时间大多是在等待 I/O 操作,因此它们被叫做 \"I/O 密集型\" 操作。\n它被称为\"异步\"的原因是因为计算机/程序不必与慢任务\"同步\",去等待任务完成的确切时刻,而在此期间不做任何事情直到能够获取任务结果才继续工作。\n相反,作为一个\"异步\"系统,一旦完成,任务就可以排队等待一段时间(几微秒),等待计算机程序完成它要做的任何事情,然后回来获取结果并继续处理它们。\n对于\"同步\"(与\"异步\"相反),他们通常也使用\"顺序\"一词,因为计…\n\n[2] 标题：GraphQL\n来源：web\n内容：GraphQL¶\n由于 FastAPI 基于 ASGI 标准,因此很容易集成任何也兼容 ASGI 的 GraphQL 库。\n你可以在同一个应用中将常规的 FastAPI 路径操作 与 GraphQL 结合使用。\n提示\nGraphQL 解决一些非常特定的用例。\n与常见的 Web API 相比,它有各自的优点和缺点。\n请确保评估在你的用例中,这些好处是否足以弥补这些缺点。 🤓\nGraphQL 库¶\n以下是一些支持 ASGI 的 GraphQL 库。你可以将它们与 FastAPI 一起使用:\n- Strawberry 🍓\n- Ariadne\n- Tartiflette\n- 提供用于 ASGI 集成的…\n\n[3] 标题：并发 async / await\n来源：web\n内容：个“等待”🕙 是以微秒为单位测量的,但总的来说,最后还是等待很久。\n这就是为什么为 Web API 使用异步 ⏸🔀⏯ 很有意义。\n这种异步机制正是 NodeJS 受到欢迎的原因(尽管 NodeJS 不是并行的),也是 Go 作为编程语言的优势所在。\n这与 FastAPI 的性能水平相同。\n你可以同时拥有并行性和异步性,你可以获得比大多数经过测试的 NodeJS 框架更高的性能,并且与 Go 不相上下,Go 是一种更接近于 C 的编译语言(全部归功于 Starlette)。\n并发比并行好吗?¶\n不!这不是故事的本意。\n并发不同于并行。而是在需要大量等待的特定场景下效果更好。因此,在 Web 应用…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/async/",
+          "https://fastapi.tiangolo.com/zh/how-to/graphql/",
+          "https://fastapi.tiangolo.com/zh/async/",
+          "https://fastapi.tiangolo.com/zh/advanced/templates/",
+          "https://fastapi.tiangolo.com/zh/how-to/custom-request-and-route/"
+        ],
+        "refused": false,
+        "citation_precision": 0.25,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 24.0,
+        "total_ms_p50": 27.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2685,
+          "completion_tokens": 806,
+          "total_tokens": 3491,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-018",
+      "question": "用 `bytes` 接收上传文件和用 `UploadFile` 接收上传文件有什么不同？",
+      "type": "comparison",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+        "https://fastapi.tiangolo.com/zh/tutorial/request-files/"
+      ],
+      "reference_answer": "声明为 `bytes` 时，FastAPI 会把整个文件读入内存，适合小文件；`UploadFile` 则暴露 `SpooledTemporaryFile` 以及 `write`、`read`、`seek` 等异步方法，还能提供 `filename`、`content_type` 等属性，很多情况下更有优势。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+        "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+        "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+        "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+        "https://fastapi.tiangolo.com/zh/tutorial/request-files/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 30.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.7189478,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：请求文件\n来源：web\n内容：请求文件¶\n你可以使用 File 定义由客户端上传的文件。\n导入 File¶\n从 fastapi 导入 File 和 UploadFile:\nfrom typing import Annotated\nfrom fastapi import FastAPI, File, UploadFile\napp = FastAPI()\n@app.post(\"/files/\")\nasync def create_file(file: Annotated[bytes, File()]):\nreturn {\"file_size\": len(file)}\n@app.post(\"/uploadfile/\")\nasyn…\n\n[2] 标题：请求文件\n来源：web\n内容：fastapi import FastAPI, File, UploadFile\napp = FastAPI()\n@app.post(\"/files/\")\nasync def create_file(file: bytes | None = File(default=None)):\nif not file:\nreturn {\"message\": \"No file sent\"}\nelse:\nreturn {\"file_size\": len(file)}\n@app.post(\"/uploadfile/\")\nasync def create_upload_file(file: UploadFile …\n\n[3] 标题：请求文件\n来源：web\n内容：Annotated[list[bytes], File()]):\nreturn {\"file_sizes\": [len(file) for file in files]}\n@app.post(\"/uploadfiles/\")\nasync def create_upload_files(files: list[UploadFile]):\nreturn {\"filenames\": [file.filename for file in files]}\n@app.get(\"/\")\nasync def main():\ncontent = \"\"\"\n\n\"\"\"\nreturn HTMLResponse(cont…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+          "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+          "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+          "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+          "https://fastapi.tiangolo.com/zh/tutorial/request-files/"
+        ],
+        "refused": false,
+        "citation_precision": 1.0,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 37.5,
+        "total_ms_p50": 44.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2603,
+          "completion_tokens": 303,
+          "total_tokens": 2906,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-019",
+      "question": "FastAPI 中用 Pydantic 模型声明查询参数、Cookie 参数和 Header 参数时，这些模型有哪些共同用法？",
+      "type": "comparison",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/",
+        "https://fastapi.tiangolo.com/zh/tutorial/cookie-param-models/",
+        "https://fastapi.tiangolo.com/zh/tutorial/header-param-models/"
+      ],
+      "reference_answer": "这三类参数模型都自 FastAPI 0.115.0 起支持；都可以在模型里用 `model_config = {'extra': 'forbid'}` 禁止额外字段，也都可以声明为 `Model | None` 并把默认值设为 `None`，使整组参数变为可选。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/cookie-param-models/",
+        "https://fastapi.tiangolo.com/zh/tutorial/header-param-models/",
+        "https://fastapi.tiangolo.com/zh/tutorial/header-params/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/",
+        "https://fastapi.tiangolo.com/zh/tutorial/cookie-params/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 24.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.7446803,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 0.9674679834891693
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：Cookie 参数模型\n来源：web\n内容：Cookie 参数模型¶\n如果你有一组相关的 cookie,你可以创建一个 Pydantic 模型来声明它们。🍪\n这将允许你在多个地方能够重用模型,并且可以一次性声明所有参数的验证方式和元数据。😎\n注意\n自 FastAPI 版本 0.115.0 起支持此功能。🤓\n提示\n此技术同样适用于 Query 、 Cookie 和 Header 。😎\n带有 Pydantic 模型的 Cookie¶\n在 Pydantic 模型中声明所需的 cookie 参数,然后将参数声明为 Cookie :\nfrom typing import Annotated\nfrom fastapi import Cookie, …\n\n[2] 标题：Header 参数模型\n来源：web\n内容：Header 参数模型¶\n如果您有一组相关的 header 参数,您可以创建一个 Pydantic 模型来声明它们。\n这将允许您在多个地方能够重用模型,并且可以一次性声明所有参数的验证和元数据。😎\n注意\n自 FastAPI 版本 0.115.0 起支持此功能。🤓\n使用 Pydantic 模型的 Header 参数¶\n在 Pydantic 模型中声明所需的 header 参数,然后将参数声明为 Header :\nfrom typing import Annotated\nfrom fastapi import FastAPI, Header\nfrom pydantic import BaseMod…\n\n[3] 标题：Header 参数\n来源：web\n内容：Header 参数¶\n定义 Header 参数的方式与定义 Query、Path、Cookie 参数相同。\n导入 Header¶\n首先,导入 Header:\nfrom typing import Annotated\nfrom fastapi import FastAPI, Header\napp = FastAPI()\n@app.get(\"/items/\")\nasync def read_items(user_agent: Annotated[str | None, Header()] = None):\nreturn {\"User-Agent\": user_agent}\n🤓 Other vers…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/cookie-param-models/",
+          "https://fastapi.tiangolo.com/zh/tutorial/header-param-models/",
+          "https://fastapi.tiangolo.com/zh/tutorial/header-params/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/",
+          "https://fastapi.tiangolo.com/zh/tutorial/cookie-params/"
+        ],
+        "refused": false,
+        "citation_precision": 0.6,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 25.5,
+        "total_ms_p50": 27.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2631,
+          "completion_tokens": 485,
+          "total_tokens": 3116,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-020",
+      "question": "在 FastAPI 中声明 `user_agent` 这个 Header 参数时，它默认对应哪个 HTTP 请求头名称？",
+      "type": "detail",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/header-params/"
+      ],
+      "reference_answer": "默认情况下，Header 会把参数名中的下划线转换成连字符，因此 `user_agent` 对应 `user-agent`；由于 HTTP 请求头不区分大小写，也可以写作 `User-Agent`。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/header-params/",
+        "https://fastapi.tiangolo.com/zh/tutorial/header-params/",
+        "https://fastapi.tiangolo.com/zh/tutorial/security/simple-oauth2/",
+        "https://fastapi.tiangolo.com/zh/tutorial/security/simple-oauth2/",
+        "https://fastapi.tiangolo.com/zh/tutorial/body/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 28.5,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6988144,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：Header 参数\n来源：web\n内容：减号(-)。\n但是 user-agent 这样的变量在 Python 中是无效的。\n因此,默认情况下,Header 把参数名中的字符由下划线(_)改为连字符(-)来提取并存档请求头 。\n同时,HTTP 的请求头不区分大小写,可以使用 Python 标准样式(即 snake_case)进行声明。\n因此,可以像在 Python 代码中一样使用 user_agent ,无需把首字母大写为 User_Agent 等形式。\n如需禁用下划线自动转换为连字符,可以把 Header 的 convert_underscores 参数设置为 False:\nfrom typing import Annotated\n…\n\n[2] 标题：Header 参数\n来源：web\n内容：Header 参数¶\n定义 Header 参数的方式与定义 Query、Path、Cookie 参数相同。\n导入 Header¶\n首先,导入 Header:\nfrom typing import Annotated\nfrom fastapi import FastAPI, Header\napp = FastAPI()\n@app.get(\"/items/\")\nasync def read_items(user_agent: Annotated[str | None, Header()] = None):\nreturn {\"User-Agent\": user_agent}\n🤓 Other vers…\n\n[3] 标题：OAuth2 实现简单的 Password 和 Bearer 验证\n来源：web\n内容：_db, token)\nreturn user\nasync def get_current_user(token: str = Depends(oauth2_scheme)):\nuser = fake_decode_token(token)\nif not user:\nraise HTTPException(\nstatus_code=status.HTTP_401_UNAUTHORIZED,\ndetail=\"Not authenticated\",\nheaders={\"WWW-Authenticate\": \"Bearer\"},\n)\nreturn user\nasync def get_current…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/header-params/",
+          "https://fastapi.tiangolo.com/zh/tutorial/header-params/",
+          "https://fastapi.tiangolo.com/zh/tutorial/security/simple-oauth2/",
+          "https://fastapi.tiangolo.com/zh/tutorial/security/simple-oauth2/",
+          "https://fastapi.tiangolo.com/zh/tutorial/body/"
+        ],
+        "refused": false,
+        "citation_precision": 0.3333333333333333,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 35.5,
+        "total_ms_p50": 38.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2716,
+          "completion_tokens": 403,
+          "total_tokens": 3119,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-021",
+      "question": "从 FastAPI 0.99.0 起，生成的 OpenAPI 文档使用哪个 OpenAPI 版本？它基于哪个 JSON Schema 版本？",
+      "type": "detail",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/schema-extra-example/"
+      ],
+      "reference_answer": "FastAPI 0.99.0 及以上使用 OpenAPI 3.1.0，它基于 JSON Schema 2020-12。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/schema-extra-example/",
+        "https://fastapi.tiangolo.com/zh/tutorial/body-nested-models/",
+        "https://fastapi.tiangolo.com/zh/how-to/separate-openapi-schemas/",
+        "https://fastapi.tiangolo.com/zh/how-to/separate-openapi-schemas/",
+        "https://fastapi.tiangolo.com/zh/advanced/generate-clients/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 348.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.646075,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：声明请求示例数据\n来源：web\n内容：.0 的 OpenAPI 版本。\nPydantic 与 FastAPI 的 examples¶\n当你在 Pydantic 模型中添加 examples,通过 schema_extra 或 Field(examples=[\"something\"]),这些示例会被添加到该 Pydantic 模型的 JSON Schema 中。\n这个 Pydantic 模型的 JSON Schema 会被包含到你的 API 的 OpenAPI 中,然后在文档 UI 中使用。\n在 FastAPI 0.99.0 之前的版本(0.99.0 及以上使用更新的 OpenAPI 3.1.0),当你在其他工具(Query()、B…\n\n[2] 标题：请求体 - 嵌套模型\n来源：web\n内容：自动生成的文档\n\nfrom\n\nfastapi\n\nimport\n\nFastAPI\n\nfrom\n\npydantic\n\nimport\n\nBaseModel\n\napp\n\n=\n\nFastAPI\n()\n\nclass\n\nItem\n(\nBaseModel\n):\n\nname\n:\n\nstr\n\ndescription\n:\n\nstr\n\n|\n\nNone\n\n=\n\nNone\n\nprice\n:\n\nfloat\n\ntax\n:\n\nfloat\n\n|\n\nNone\n\n=\n\nNone\n\ntags\n:\n\nlist\n\n=\n\n[]\n\n@app\n.\nput\n(\n\"/items/\n{item_id}\n\"\n)\n\nasync\n\ndef\n\nupdate_…\n\n[3] 标题：是否为输入和输出分别生成 OpenAPI JSON Schema\n来源：web\n内容：是否为输入和输出分别生成 OpenAPI JSON Schema¶\n自从发布了 Pydantic v2,生成的 OpenAPI 比之前更精确、更正确了。😎\n事实上,在某些情况下,对于同一个 Pydantic 模型,OpenAPI 中会根据是否带有默认值,为输入和输出分别生成两个 JSON Schema。\n我们来看看它如何工作,以及在需要时如何修改。\n用于输入和输出的 Pydantic 模型¶\n假设你有一个带有默认值的 Pydantic 模型,例如:\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel\nclass Item(Bas…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/schema-extra-example/",
+          "https://fastapi.tiangolo.com/zh/tutorial/body-nested-models/",
+          "https://fastapi.tiangolo.com/zh/how-to/separate-openapi-schemas/",
+          "https://fastapi.tiangolo.com/zh/how-to/separate-openapi-schemas/",
+          "https://fastapi.tiangolo.com/zh/advanced/generate-clients/"
+        ],
+        "refused": false,
+        "citation_precision": 0.25,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 335.5,
+        "total_ms_p50": 339.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2741,
+          "completion_tokens": 507,
+          "total_tokens": 3248,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-022",
+      "question": "路径操作装饰器的 `response_model_exclude_unset` 参数有什么作用？",
+      "type": "detail",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/response-model/"
+      ],
+      "reference_answer": "设置为 `True` 时，响应中会省略没有被显式设置的默认值字段；但如果客户端显式设置了某个字段，即使它的值等于默认值，该字段仍会出现在响应中。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/how-to/custom-request-and-route/",
+        "https://fastapi.tiangolo.com/zh/tutorial/response-model/",
+        "https://fastapi.tiangolo.com/zh/tutorial/response-model/",
+        "https://fastapi.tiangolo.com/zh/tutorial/dependencies/dependencies-in-path-operation-decorators/",
+        "https://fastapi.tiangolo.com/zh/reference/encoders/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 261.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6993065,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 0.5,
+        "ndcg_at_10": 0.6309297535714575
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：自定义 Request 和 APIRoute 类\n来源：web\n内容：await request.body()\ndetail = {\"errors\": exc.errors(), \"body\": body.decode()}\nraise HTTPException(status_code=422, detail=detail)\nreturn custom_route_handler\napp = FastAPI()\napp.router.route_class = ValidationErrorLoggingRoute\n@app.post(\"/\")\nasync def sum_numbers(numbers: list[int] = Body()):\nreturn…\n\n[2] 标题：响应模型 - 返回类型\n来源：web\n内容：description: Union[str, None] = None(或在 Python 3.10 中的 str | None = None)默认值为 None。\n- tax: float = 10.5 默认值为 10.5。\n- tags: List[str] = [] 默认值为一个空列表:[]。\n但如果它们并没有被实际存储,你可能希望在结果中省略这些默认值。\n例如,当你在 NoSQL 数据库中保存了具有许多可选属性的模型,但又不想发送充满默认值的冗长 JSON 响应。\n使用 response_model_exclude_unset 参数¶\n你可以设置路径操作装饰器参数 response_…\n\n[3] 标题：响应模型 - 返回类型\n来源：web\n内容：2},\n\"baz\": {\n\"name\": \"Baz\",\n\"description\": \"There goes my baz\",\n\"price\": 50.2,\n\"tax\": 10.5,\n},\n}\n@app.get(\n\"/items/{item_id}/name\",\nresponse_model=Item,\nresponse_model_include=[\"name\", \"description\"],\n)\nasync def read_item_name(item_id: str):\nreturn items[item_id]\n@app.get(\"/items/{item_id}/public\",…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/how-to/custom-request-and-route/",
+          "https://fastapi.tiangolo.com/zh/tutorial/response-model/",
+          "https://fastapi.tiangolo.com/zh/tutorial/response-model/",
+          "https://fastapi.tiangolo.com/zh/tutorial/dependencies/dependencies-in-path-operation-decorators/",
+          "https://fastapi.tiangolo.com/zh/reference/encoders/"
+        ],
+        "refused": false,
+        "citation_precision": 0.25,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 276.0,
+        "total_ms_p50": 278.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2748,
+          "completion_tokens": 403,
+          "total_tokens": 3151,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g1-023",
+      "question": "查询参数模型 `FilterParams` 中，`limit` 和 `offset` 的默认值与约束分别是什么？",
+      "type": "detail",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/"
+      ],
+      "reference_answer": "`limit` 的默认值是 100，并受 `gt=0, le=100` 约束，即必须大于 0 且小于等于 100；`offset` 的默认值是 0，并受 `ge=0` 约束，即必须大于等于 0。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 42.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6258837,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：查询参数模型\n来源：web\n内容：查询参数模型¶\n如果你有一组具有相关性的查询参数,你可以创建一个 Pydantic 模型来声明它们。\n这将允许你在多个地方去复用模型,并且一次性为所有参数声明验证和元数据。😎\n注意\nFastAPI 从 0.115.0 版本开始支持这个特性。🤓\n使用 Pydantic 模型的查询参数¶\n在一个 Pydantic 模型中声明你需要的查询参数,然后将参数声明为 Query:\nfrom typing import Annotated, Literal\nfrom fastapi import FastAPI, Query\nfrom pydantic import BaseModel, Field\napp…\n\n[2] 标题：查询参数模型\n来源：web\n内容：\"Extra inputs are not permitted\",\n\"input\": \"plumbus\"\n}\n]\n}\n组合参数模型¶\n你可以声明多个查询参数模型,并将它们与单独的查询参数或依赖项组合使用。\nfrom typing import Annotated\nfrom fastapi import FastAPI, Query\nfrom pydantic import BaseModel, Field\napp = FastAPI()\nclass Pagination(BaseModel):\nlimit: int = Field(10, ge=1)\noffset: int = Field(0…\n\n[3] 标题：查询参数模型\n来源：web\n内容：在一些特殊的使用场景中(可能不是很常见),你可能希望限制你要接收的查询参数。\n你可以使用 Pydantic 的模型配置来 forbid 任何 extra 字段:\nfrom typing import Annotated, Literal\nfrom fastapi import FastAPI, Query\nfrom pydantic import BaseModel, Field\napp = FastAPI()\nclass FilterParams(BaseModel):\nmodel_config = {\"extra\": \"forbid\"}\nlimit: int = Field(100, gt…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/"
+        ],
+        "refused": false,
+        "citation_precision": 1.0,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 46.5,
+        "total_ms_p50": 50.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2711,
+          "completion_tokens": 456,
+          "total_tokens": 3167,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-001",
+      "question": "把 FastAPI 应用放在 Nginx 这类代理后面时，为什么它默认不采用代理传来的转发请求头？要让服务器信任这些请求头应使用哪个选项？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/behind-a-proxy/"
+      ],
+      "reference_answer": "因为服务器并不知道自己处在受信任的代理之后，出于安全考虑默认不会解析这些转发请求头。要启用时，用 fastapi run 的 --forwarded-allow-ips 选项传入可信 IP 列表（设为 * 表示信任所有来源）。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/behind-a-proxy/",
+        "https://fastapi.tiangolo.com/zh/deployment/https/",
+        "https://fastapi.tiangolo.com/zh/advanced/behind-a-proxy/",
+        "https://fastapi.tiangolo.com/zh/deployment/https/",
+        "https://fastapi.tiangolo.com/zh/advanced/behind-a-proxy/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 31.5,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.7591553,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：使用代理\n来源：web\n内容：使用代理¶\n在很多情况下,你会在 FastAPI 应用前面使用像 Traefik 或 Nginx 这样的代理。\n这些代理可以处理 HTTPS 证书等事项。\n代理转发的请求头¶\n在你的应用前面的代理通常会在把请求转发给你的服务器之前,临时设置一些请求头,让服务器知道该请求是由代理转发的,并告知原始(公网)URL,包括域名、是否使用 HTTPS 等。\n由 fastapi run 启动的服务器能够解析这些请求头,然后把这些信息传递给你的应用。\n但出于安全考虑,由于服务器并不知道自己处在受信任的代理之后,它默认不会解析这些请求头。\n启用代理转发的请求头¶\n你可以用 CLI 选项 --forwarded…\n\n[2] 标题：关于 HTTPS\n来源：web\n内容：HTTP 与 TLS 终止代理通信。\n这个代理通常会在将请求转发给应用服务器之前,临时设置一些 HTTP 请求头,以便让应用服务器知道该请求是由代理转发过来的。\n不过,由于应用服务器并不知道自己位于受信任的代理之后,默认情况下,它不会信任这些请求头。\n但你可以配置应用服务器去信任由代理发送的这些转发请求头。如果你在使用 FastAPI CLI,可以使用 CLI 选项 --forwarded-allow-ips 指定它应该信任哪些 IP 发来的这些转发请求头。\n例如,如果应用服务器只接收来自受信任代理的通信,你可以设置 --forwarded-allow-ips=\"*\",让它信任所有传入的 IP…\n\n[3] 标题：使用代理\n来源：web\n内容：CLI 选项 --forwarded-allow-ips 之前,它可能会重定向到 http://localhost:8000/items/。\n而你的应用可能托管在 https://mysuperapp.com,重定向应当是 https://mysuperapp.com/items/。\n通过设置 --proxy-headers,FastAPI 现在就可以重定向到正确的位置。😎\nhttps://mysuperapp.com/items/\n提示\n如果你想了解更多关于 HTTPS 的内容,查看指南:关于 HTTPS。\n代理转发请求头如何工作¶\n下面是一个可视化图示,展示了代理如何在客户端与应用服务器之…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/advanced/behind-a-proxy/",
+          "https://fastapi.tiangolo.com/zh/deployment/https/",
+          "https://fastapi.tiangolo.com/zh/advanced/behind-a-proxy/",
+          "https://fastapi.tiangolo.com/zh/deployment/https/",
+          "https://fastapi.tiangolo.com/zh/advanced/behind-a-proxy/"
+        ],
+        "refused": false,
+        "citation_precision": 0.5,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 34.0,
+        "total_ms_p50": 36.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2621,
+          "completion_tokens": 687,
+          "total_tokens": 3308,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-002",
+      "question": "在 Jinja2 模板中用 url_for() 生成站内链接时，默认得到的是绝对 URL 还是相对路径？只想取路径部分该用什么？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/templates/"
+      ],
+      "reference_answer": "url_for() 会根据当前请求生成包含协议和主机的绝对 URL。若只想得到站内链接的路径部分，可以使用返回 URL 的 .path 属性。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/templates/",
+        "https://fastapi.tiangolo.com/zh/advanced/templates/",
+        "https://fastapi.tiangolo.com/zh/reference/httpconnection/",
+        "https://fastapi.tiangolo.com/zh/advanced/templates/",
+        "https://fastapi.tiangolo.com/zh/reference/websockets/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 418.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.7099601,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：模板\n来源：web\n内容：,会渲染成:\n\n模板中的 URL 路径¶\n对于指向同一站点的链接,你可以使用 .path 属性仅获取 URL 路径,例如,在 templates/item_path.html 中:\n\nItem Details\n\nItem ID: {{ id }}\n\n将模板名称传递给 TemplateResponse:\n# Code above omitted 👆\n@app.get(\"/items/{id}\", response_class=HTMLResponse)\nasync def read_item(request: Request, id: str):\nreturn templates.Templat…\n\n[2] 标题：模板\n来源：web\n内容：同一个 starlette.templating 作为 fastapi.templating 提供,只是为了方便开发者使用。但绝大多数可用响应都直接来自 Starlette。Request 和 StaticFiles 也一样。\n编写模板¶\n然后你可以在 templates/item.html 编写一个模板,例如:\n\nItem Details\n\nItem ID: {{ id }}\n\n模板上下文值¶\n在包含如下语句的 HTML 中:\nItem ID: {{ id }}\n...它会显示你传入的 \"context\" dict 中取得的 id:\n{\"id\": id}\n例如,当 ID 为 42 时,会渲染…\n\n[3] 标题：HTTPConnection class\n来源：web\n内容：\"\n)\n\nif\n\nurl_path_provider\n\nis\n\nNone\n:\n\nraise\n\nRuntimeError\n(\n\"The `url_for` method can only be used inside a Starlette application or with a router.\"\n)\n\nurl_path\n\n=\n\nurl_path_provider\n.\nurl_path_for\n(\nname\n,\n\n**\npath_params\n)\n\nreturn\n\nurl_path\n.\nmake_absolute_url\n(\nbase_url\n=\nself\n.\nbase_url\n)",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/advanced/templates/",
+          "https://fastapi.tiangolo.com/zh/advanced/templates/",
+          "https://fastapi.tiangolo.com/zh/reference/httpconnection/",
+          "https://fastapi.tiangolo.com/zh/advanced/templates/",
+          "https://fastapi.tiangolo.com/zh/reference/websockets/"
+        ],
+        "refused": false,
+        "citation_precision": 0.3333333333333333,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 452.0,
+        "total_ms_p50": 454.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 1880,
+          "completion_tokens": 420,
+          "total_tokens": 2300,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-003",
+      "question": "用 @app.on_event(\"startup\") 注册的启动事件，会在通过 mount 挂载的子应用上执行吗？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/events/"
+      ],
+      "reference_answer": "不会。文档指出 startup 和 shutdown 这些生命周期事件只会在主应用上执行，不会在通过 mount 挂载的子应用上执行。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/sub-applications/",
+        "https://fastapi.tiangolo.com/zh/advanced/events/",
+        "https://fastapi.tiangolo.com/zh/deployment/server-workers/",
+        "https://fastapi.tiangolo.com/zh/advanced/events/",
+        "https://fastapi.tiangolo.com/zh/advanced/testing-events/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 24.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.67482674,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 0.5,
+        "ndcg_at_10": 0.6309297535714575
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：子应用 - 挂载\n来源：web\n内容：子应用 - 挂载¶\n如果需要两个独立的 FastAPI 应用,拥有各自独立的 OpenAPI 与文档 UI,则需设置一个主应用,并挂载一个(或多个)子应用。\n挂载 FastAPI 应用¶\n挂载是指在特定路径中添加完全独立的应用,然后在该路径下使用路径操作声明的子应用处理所有事务。\n顶层应用¶\n首先,创建主(顶层)FastAPI 应用及其路径操作:\nfrom fastapi import FastAPI\napp = FastAPI()\n@app.get(\"/app\")\ndef read_main():\nreturn {\"message\": \"Hello World from main app\"}…\n\n[2] 标题：生命周期事件\n来源：web\n内容：动和关闭期间执行的逻辑。\n你可以定义在应用启动前或应用关闭时需要执行的事件处理器(函数)。\n事件函数既可以声明为异步函数(async def),也可以声明为普通函数(def)。\nstartup 事件¶\n使用事件 \"startup\" 声明一个在应用启动前运行的函数:\nfrom fastapi import FastAPI\napp = FastAPI()\nitems = {}\n@app.on_event(\"startup\")\nasync def startup_event():\nitems[\"foo\"] = {\"name\": \"Fighters\"}\nitems[\"bar\"] = {\"name\": …\n\n[3] 标题：服务器工作进程(Workers) - 使用 Uvicorn 的多工作进程模式\n来源：web\n内容：Searching for package file structure from directories with\n__init__.py files\nImporting from /home/user/code/ awesomeapp\nmodule 🐍 main.py\ncode Importing the FastAPI app object from the module with the\nfollowing code:\nfrom main import app\napp Using import string: main:app\nserver Server started at http…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/advanced/sub-applications/",
+          "https://fastapi.tiangolo.com/zh/advanced/events/",
+          "https://fastapi.tiangolo.com/zh/deployment/server-workers/",
+          "https://fastapi.tiangolo.com/zh/advanced/events/",
+          "https://fastapi.tiangolo.com/zh/advanced/testing-events/"
+        ],
+        "refused": false,
+        "citation_precision": 0.25,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 34.5,
+        "total_ms_p50": 37.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2682,
+          "completion_tokens": 472,
+          "total_tokens": 3154,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-004",
+      "question": "FastAPI 的 OpenTelemetry 请求追踪默认会为哪些操作生成 span？BackgroundTasks 的 span 会不会拉长统计到的响应时间？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/opentelemetry/"
+      ],
+      "reference_answer": "默认会为解析依赖项、运行路径操作函数、序列化响应以及 BackgroundTasks 中的每个任务生成 span。后台任务的 span 在 HTTP 响应 span 结束后才运行，因此不会增加测得的响应时间。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/opentelemetry/",
+        "https://fastapi.tiangolo.com/zh/reference/background/",
+        "https://fastapi.tiangolo.com/zh/tutorial/response-model/",
+        "https://fastapi.tiangolo.com/zh/tutorial/background-tasks/",
+        "https://fastapi.tiangolo.com/zh/tutorial/background-tasks/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 97.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6229006,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：OpenTelemetry\n来源：web\n内容：指南。\n在同一个字典中使用 meter_provider 或 logger_provider 来提供指标或日志 provider。创建 provider 的应用或库负责管理其关闭过程。FastAPI 负责管理它所添加的导出组件。\n警告\nOpenTelemetry 默认使用全局 provider。不保证挂载的子应用可以拥有独立的遥测配置。\n追踪请求操作¶\n默认情况下,请求追踪包含以下操作的 span:解析依赖项、运行路径操作函数、序列化响应,以及运行 FastAPI 的 BackgroundTasks 中的每个任务。这些 span 使用相同的 provider 和 exporter。\n后台任务的…\n\n[2] 标题：Background Tasks - BackgroundTasks\n来源：web\n内容：Background Tasks - BackgroundTasks¶\nYou can declare a parameter in a path operation function or dependency function with the type BackgroundTasks, and then you can use it to schedule the execution of background tasks after the response is sent.\nYou can import it directly from fastapi:\nfrom fastapi i…\n\n[3] 标题：响应模型 - 返回类型\n来源：web\n内容：可能不想要 FastAPI 执行默认的数据校验、文档、过滤等。\n但你可能仍然想在函数上保留返回类型注解,以获得编辑器和类型检查器(如 mypy)的支持。\n在这种情况下,你可以通过设置 response_model=None 来禁用响应模型生成:\nfrom fastapi import FastAPI, Response\nfrom fastapi.responses import RedirectResponse\napp = FastAPI()\n@app.get(\"/portal\", response_model=None)\nasync def get_portal(teleport: bool…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/advanced/opentelemetry/",
+          "https://fastapi.tiangolo.com/zh/reference/background/",
+          "https://fastapi.tiangolo.com/zh/tutorial/response-model/",
+          "https://fastapi.tiangolo.com/zh/tutorial/background-tasks/",
+          "https://fastapi.tiangolo.com/zh/tutorial/background-tasks/"
+        ],
+        "refused": false,
+        "citation_precision": 0.25,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 98.0,
+        "total_ms_p50": 101.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2617,
+          "completion_tokens": 444,
+          "total_tokens": 3061,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-005",
+      "question": "FastAPI 的 OpenAPI 网络钩子对 OpenAPI 版本和 FastAPI 版本分别有什么要求？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/openapi-webhooks/"
+      ],
+      "reference_answer": "网络钩子需要 OpenAPI 3.1.0 及以上版本，FastAPI 从 0.99.0 起支持。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/openapi-webhooks/",
+        "https://fastapi.tiangolo.com/zh/advanced/openapi-webhooks/",
+        "https://fastapi.tiangolo.com/zh/advanced/openapi-webhooks/",
+        "https://fastapi.tiangolo.com/zh/how-to/extending-openapi/",
+        "https://fastapi.tiangolo.com/zh/how-to/migrate-from-pydantic-v1-to-pydantic-v2/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 115.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6954777,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：OpenAPI 网络钩子\n来源：web\n内容：OpenAPI 网络钩子¶\n有些情况下,您可能想告诉您的 API 用户,您的应用程序可以携带一些数据调用他们的应用程序(给它们发送请求),通常是为了通知某种事件。\n这意味着,与通常由您的用户向您的 API 发送请求的流程相反,是您的 API(或您的应用)可以向他们的系统(他们的 API、他们的应用)发送请求。\n这通常被称为网络钩子(Webhook)。\n使用网络钩子的步骤¶\n通常的过程是您在代码中定义要发送的消息,即请求的主体。\n您还需要以某种方式定义您的应用程序将在何时发送这些请求或事件。\n用户会以某种方式(例如在某个网页仪表板上)定义您的应用程序发送这些请求应该使用的 URL。\n所有关于注册…\n\n[2] 标题：OpenAPI 网络钩子\n来源：web\n内容：自动生成一些自己的 API 代码。\n注意\n网络钩子在 OpenAPI 3.1.0 及以上版本中可用,FastAPI 0.99.0 及以上版本支持。\n带有网络钩子的应用程序¶\n当您创建一个 FastAPI 应用程序时,有一个 webhooks 属性可以用来定义网络钩子,方式与您定义路径操作的时候相同,例如使用 @app.webhooks.post() 。\nfrom datetime import datetime\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel\napp = FastAPI()\nclass Subscriptio…\n\n[3] 标题：OpenAPI 网络钩子\n来源：web\n内容：程序并访问 http://127.0.0.1:8000/docs。\n您会看到您的文档不仅有正常的路径操作显示,现在还多了一些网络钩子:\n\nfrom\n\ndatetime\n\nimport\n\ndatetime\n\nfrom\n\nfastapi\n\nimport\n\nFastAPI\n\nfrom\n\npydantic\n\nimport\n\nBaseModel\n\napp\n\n=\n\nFastAPI\n()\n\nclass\n\nSubscription\n(\nBaseModel\n):\n\nusername\n:\n\nstr\n\nmonthly_fee\n:\n\nfloat\n\nstart_date\n:\n\ndatetime\n\n@app\n.\nwebh…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/advanced/openapi-webhooks/",
+          "https://fastapi.tiangolo.com/zh/advanced/openapi-webhooks/",
+          "https://fastapi.tiangolo.com/zh/advanced/openapi-webhooks/",
+          "https://fastapi.tiangolo.com/zh/how-to/extending-openapi/",
+          "https://fastapi.tiangolo.com/zh/how-to/migrate-from-pydantic-v1-to-pydantic-v2/"
+        ],
+        "refused": false,
+        "citation_precision": 0.3333333333333333,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 118.5,
+        "total_ms_p50": 121.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2428,
+          "completion_tokens": 594,
+          "total_tokens": 3022,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-006",
+      "question": "在 HTTPS 部署中，SNI 扩展解决了什么问题？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/deployment/https/"
+      ],
+      "reference_answer": "SNI 是 TLS 的一个扩展，允许一台只有单个 IP 地址的服务器拥有多个 HTTPS 证书，并对外提供多个 HTTPS 域名或应用。监听公网 IP 的 TLS 终止代理据此选择与客户端请求域名匹配的证书。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/deployment/https/",
+        "https://fastapi.tiangolo.com/zh/deployment/https/",
+        "https://fastapi.tiangolo.com/zh/deployment/concepts/",
+        "https://fastapi.tiangolo.com/zh/advanced/behind-a-proxy/",
+        "https://fastapi.tiangolo.com/zh/deployment/docker/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 19.5,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.5839864,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：关于 HTTPS\n来源：web\n内容：大,或者服务器上的每个应用程序有多小。\n- 不过,对此有一个解决方案。\n- TLS 协议(在 HTTP 之下的 TCP 层处理加密的协议)有一个扩展,称为 SNI。\n- SNI 扩展允许一台服务器(具有 单个 IP 地址)拥有 多个 HTTPS 证书 并提供 多个 HTTPS 域名/应用程序。\n- 为此,服务器上会有单独的一个组件(程序)侦听公共 IP 地址,这个组件必须拥有服务器中的所有 HTTPS 证书。\n- 获得安全连接后,通信协议仍然是HTTP。\n- 内容是 加密过的,即使它们是通过 HTTP 协议 发送的。\n通常的做法是在服务器上运行一个程序/HTTP 服务器并管理所有 HTTPS …\n\n[2] 标题：关于 HTTPS\n来源：web\n内容：关于 HTTPS¶\n人们很容易认为 HTTPS 仅仅是“启用”或“未启用”的东西。\n但实际情况比这复杂得多。\n提示\n如果你很赶时间或不在乎,请继续阅读后续章节,它们会提供逐步的教程,告诉你怎么使用不同技术把一切都配置好。\n要从用户的视角了解 HTTPS 的基础知识,请查看 https://howhttps.works/。\n现在,从开发人员的视角,在了解 HTTPS 时需要记住以下几点:\n- 要使用 HTTPS,服务器需要拥有由第三方生成的\"证书(certificate)\"。\n- 这些证书实际上是从第三方获取的,而不是“生成”的。\n- 证书有生命周期。\n- 它们会过期。\n- 然后它们需要更新,再…\n\n[3] 标题：部署概念\n来源：web\n内容：部署概念¶\n在部署 FastAPI 应用程序,或者实际上,任何类型的 Web API 时,有几个你可能会关心的概念,通过掌握这些概念你可以找到最合适的方法来部署你的应用程序。\n一些重要的概念是:\n- 安全性 - HTTPS\n- 启动时运行\n- 重新启动\n- 复制(运行的进程数)\n- 内存\n- 启动前的先前步骤\n我们接下来了解它们将如何影响部署。\n最终目标是能够以安全的方式为你的 API 客户端提供服务,同时避免中断,并且尽可能高效地利用计算资源(例如远程服务器/虚拟机)。 🚀\n我将在这里告诉你更多关于这些概念的信息,希望能给你提供直觉来决定如何在非常不同的环境中部署你的 API,甚至是在尚不存…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/deployment/https/",
+          "https://fastapi.tiangolo.com/zh/deployment/https/",
+          "https://fastapi.tiangolo.com/zh/deployment/concepts/",
+          "https://fastapi.tiangolo.com/zh/advanced/behind-a-proxy/",
+          "https://fastapi.tiangolo.com/zh/deployment/docker/"
+        ],
+        "refused": false,
+        "citation_precision": 0.25,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 22.0,
+        "total_ms_p50": 24.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2625,
+          "completion_tokens": 848,
+          "total_tokens": 3473,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-007",
+      "question": "为什么在 4 个 worker 的 FastAPI 服务里加载一个 1 GB 的机器学习模型，会占用约 4 GB 内存？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/deployment/concepts/"
+      ],
+      "reference_answer": "多个进程通常不共享内存，每个工作进程都会拥有自己的变量和内存。因此代码加载 1 GB 模型时，4 个 worker 各自加载一份，总共约需 4 GB RAM。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/deployment/concepts/",
+        "https://fastapi.tiangolo.com/zh/deployment/docker/",
+        "https://fastapi.tiangolo.com/zh/deployment/docker/",
+        "https://fastapi.tiangolo.com/zh/tutorial/security/simple-oauth2/",
+        "https://fastapi.tiangolo.com/zh/tutorial/security/oauth2-jwt/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 20.5,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6315795,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：部署概念\n来源：web\n内容：存¶\n现在,当程序将内容加载到内存中时,例如,将机器学习模型加载到变量中,或者将大文件的内容加载到变量中,所有这些都会消耗服务器的一些内存 (RAM)。\n多个进程通常不共享任何内存。这意味着每个正在运行的进程都有自己的东西、变量和内存。如果你的代码消耗了大量内存,每个进程将消耗等量的内存。\n服务器内存¶\n例如,如果你的代码加载大小为 1 GB 的机器学习模型,则当你使用 API 运行一个进程时,它将至少消耗 1 GB RAM。如果你启动 4 个进程(4 个工作进程),每个进程将消耗 1 GB RAM。因此,你的 API 总共将消耗 4 GB RAM。\n如果你的远程服务器或虚拟机只有 3 GB …\n\n[2] 标题：容器中的 FastAPI - Docker\n来源：web\n内容：(例如 Kubernetes)的配置中设置同样的内存限制与需求。这样它就能在可用的机器上复制容器,同时考虑容器所需的内存量以及集群中机器可用的内存量。\n如果你的应用很简单,这可能不成问题,你也许不需要设置严格的内存上限。但如果你使用大量内存(例如使用机器学习模型),你应该检查自己的内存消耗,并调整每台机器上运行的容器数量(也许还需要为集群增加机器)。\n如果你每个容器运行多个进程,你需要确保启动的进程数量不会消耗超过可用的内存。\n启动前的前置步骤与容器¶\n如果你在使用容器(如 Docker、Kubernetes),你可以采用两种主要方式。\n多个容器¶\n如果你有多个容器,可能每个容器运行一个单独进…\n\n[3] 标题：容器中的 FastAPI - Docker\n来源：web\n内容：器,其后再启动多个worker 进程(或者也只有一个进程),那么你可以在同一个容器中,在启动应用进程之前执行这些前置步骤。\n基础 Docker 镜像¶\n曾经有一个官方的 FastAPI Docker 镜像:tiangolo/uvicorn-gunicorn-fastapi。但它现在已被弃用。⛔️\n你大概率不应该使用这个基础镜像(或任何其它类似的镜像)。\n如果你使用 Kubernetes(或其他)并且已经在集群层面设置复制、使用多个容器,那么在这些情况下,最好如上所述从头构建镜像:为 FastAPI 构建 Docker 镜像。\n如果你需要多个 workers,可以直接使用 --workers 命…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/deployment/concepts/",
+          "https://fastapi.tiangolo.com/zh/deployment/docker/",
+          "https://fastapi.tiangolo.com/zh/deployment/docker/",
+          "https://fastapi.tiangolo.com/zh/tutorial/security/simple-oauth2/",
+          "https://fastapi.tiangolo.com/zh/tutorial/security/oauth2-jwt/"
+        ],
+        "refused": false,
+        "citation_precision": 0.25,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 26.5,
+        "total_ms_p50": 30.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2737,
+          "completion_tokens": 826,
+          "total_tokens": 3563,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-008",
+      "question": "启动 Uvicorn/FastAPI 时启用多个工作进程的选项是什么？在 Kubernetes 中通常还需要在容器内开多个 worker 吗？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/deployment/server-workers/"
+      ],
+      "reference_answer": "启用多个工作进程的 CLI 选项是 --workers。文档同时说明，在 Kubernetes 中通常不需要在容器内开多个 worker，而是每个容器运行一个 Uvicorn 进程，由集群层面处理复制。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/deployment/server-workers/",
+        "https://fastapi.tiangolo.com/zh/deployment/server-workers/",
+        "https://fastapi.tiangolo.com/zh/advanced/testing-events/",
+        "https://fastapi.tiangolo.com/zh/deployment/docker/",
+        "https://fastapi.tiangolo.com/zh/reference/websockets/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 27.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.75302273,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：服务器工作进程(Workers) - 使用 Uvicorn 的多工作进程模式\n来源：web\n内容：服务器工作进程(Workers) - 使用 Uvicorn 的多工作进程模式¶\n让我们回顾一下之前的部署概念:\n- 安全性 - HTTPS\n- 启动时运行\n- 重新启动\n- 复制(运行的进程数)\n- 内存\n- 启动前的先前步骤\n到目前为止,在文档中的所有教程中,您可能一直是在运行一个服务器程序,例如使用 fastapi 命令来启动 Uvicorn,而它默认运行的是单进程模式。\n部署应用程序时,您可能希望进行一些进程复制,以利用多核 CPU 并能够处理更多请求。\n正如您在上一章有关部署概念中看到的,您可以使用多种策略。\n在本章节中,我将向您展示如何使用 fastapi 命令或直接使用 uvico…\n\n[2] 标题：服务器工作进程(Workers) - 使用 Uvicorn 的多工作进程模式\n来源：web\n内容：Searching for package file structure from directories with\n__init__.py files\nImporting from /home/user/code/ awesomeapp\nmodule 🐍 main.py\ncode Importing the FastAPI app object from the module with the\nfollowing code:\nfrom main import app\napp Using import string: main:app\nserver Server started at http…\n\n[3] 标题：测试事件:lifespan 和 startup - shutdown\n来源：web\n内容：测试事件:lifespan 和 startup - shutdown¶\n当你需要在测试中运行 lifespan 时,可以将 TestClient 与 with 语句一起使用:\nfrom contextlib import asynccontextmanager\nfrom fastapi import FastAPI\nfrom fastapi.testclient import TestClient\nitems = {}\n@asynccontextmanager\nasync def lifespan(app: FastAPI):\nitems[\"foo\"] = {\"name\": \"Fighters…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/deployment/server-workers/",
+          "https://fastapi.tiangolo.com/zh/deployment/server-workers/",
+          "https://fastapi.tiangolo.com/zh/advanced/testing-events/",
+          "https://fastapi.tiangolo.com/zh/deployment/docker/",
+          "https://fastapi.tiangolo.com/zh/reference/websockets/"
+        ],
+        "refused": false,
+        "citation_precision": 0.25,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 32.0,
+        "total_ms_p50": 34.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2686,
+          "completion_tokens": 522,
+          "total_tokens": 3208,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-009",
+      "question": "从哪个 FastAPI 版本开始移除了对 pydantic.v1 的支持？最新版本对 Pydantic 版本有什么要求？",
+      "type": "factual",
+      "split": "dev",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/how-to/migrate-from-pydantic-v1-to-pydantic-v2/"
+      ],
+      "reference_answer": "FastAPI 0.128.0 移除了对 pydantic.v1 的支持，最新版本的 FastAPI 需要 Pydantic v2。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/how-to/migrate-from-pydantic-v1-to-pydantic-v2/",
+        "https://fastapi.tiangolo.com/zh/how-to/migrate-from-pydantic-v1-to-pydantic-v2/",
+        "https://fastapi.tiangolo.com/zh/how-to/migrate-from-pydantic-v1-to-pydantic-v2/",
+        "https://fastapi.tiangolo.com/zh/how-to/migrate-from-pydantic-v1-to-pydantic-v2/",
+        "https://fastapi.tiangolo.com/zh/how-to/migrate-from-pydantic-v1-to-pydantic-v2/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 22.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6926657,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：从 Pydantic v1 迁移到 Pydantic v2\n来源：web\n内容：从 Pydantic v1 迁移到 Pydantic v2¶\n如果你有一个较旧的 FastAPI 应用,可能在使用 Pydantic v1。\nFastAPI 0.100.0 同时支持 Pydantic v1 和 v2,会使用你已安装的任一版本。\nFastAPI 0.119.0 引入了在 Pydantic v2 内部以 pydantic.v1 形式对 Pydantic v1 的部分支持,以便于迁移到 v2。\nFastAPI 0.126.0 移除了对 Pydantic v1 的支持,但在一段时间内仍支持 pydantic.v1。\nFastAPI 0.128.0 也移除了对 pydantic.v1 …\n\n[2] 标题：从 Pydantic v1 迁移到 Pydantic v2\n来源：web\n内容：临时辅助。\n在当前版本的 FastAPI 中,在你的应用里使用 pydantic.v1 模型会引发错误。\n本节其余部分描述的临时支持仅在那些较旧版本中可用。\n自 FastAPI 0.119.0 起,FastAPI 也对 Pydantic v2 内的 Pydantic v1 提供了部分支持,以便迁移到 v2。\n因此,你可以将 Pydantic 升级到最新的 v2,并将导入改为使用 pydantic.v1 子模块,在很多情况下就能直接工作。\nfrom fastapi import FastAPI\nfrom pydantic.v1 import BaseModel\nclass Item(BaseMo…\n\n[3] 标题：从 Pydantic v1 迁移到 Pydantic v2\n来源：web\n内容：了解变更。\n测试¶\n请确保你的应用有测试,并在持续集成(CI)中运行它们。\n这样你就可以升级并确保一切仍按预期工作。\nbump-pydantic¶\n在很多情况下,如果你使用的是未做自定义的常规 Pydantic 模型,可以将从 Pydantic v1 迁移到 v2 的大部分过程自动化。\n你可以使用同一 Pydantic 团队提供的bump-pydantic。\n该工具会帮助你自动修改大部分需要变更的代码。\n之后运行测试检查是否一切正常。如果正常,你就完成了。😎\nv2 中的 Pydantic v1¶\nPydantic v2 以子模块 pydantic.v1 的形式包含了 Pydantic v1 的…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/how-to/migrate-from-pydantic-v1-to-pydantic-v2/",
+          "https://fastapi.tiangolo.com/zh/how-to/migrate-from-pydantic-v1-to-pydantic-v2/",
+          "https://fastapi.tiangolo.com/zh/how-to/migrate-from-pydantic-v1-to-pydantic-v2/",
+          "https://fastapi.tiangolo.com/zh/how-to/migrate-from-pydantic-v1-to-pydantic-v2/",
+          "https://fastapi.tiangolo.com/zh/how-to/migrate-from-pydantic-v1-to-pydantic-v2/"
+        ],
+        "refused": false,
+        "citation_precision": 1.0,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 25.5,
+        "total_ms_p50": 27.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2781,
+          "completion_tokens": 692,
+          "total_tokens": 3473,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-neg-001",
+      "question": "FastAPI 如何配置 Kubernetes Operator 来实现自动扩缩容？",
+      "type": "negative",
+      "split": "dev",
+      "answerable": false,
+      "gold_urls": [],
+      "reference_answer": "根据现有资料无法确定。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/editor-support/",
+        "https://fastapi.tiangolo.com/zh/how-to/custom-request-and-route/",
+        "https://fastapi.tiangolo.com/zh/advanced/path-operation-advanced-configuration/",
+        "https://fastapi.tiangolo.com/zh/reference/templating/",
+        "https://fastapi.tiangolo.com/zh/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 101.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6269648,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": null,
+        "evidence_recall_at_5": null,
+        "mrr": null,
+        "ndcg_at_10": null
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：编辑器支持\n来源：web\n内容：编辑器支持¶\n官方的 FastAPI 扩展为你的 FastAPI 开发流程带来增强,包括路径操作的发现与导航、部署到 FastAPI Cloud,以及实时日志流式传输。\n有关该扩展的更多详情,请参阅其 GitHub 仓库中的 README。\n安装与配置¶\nFastAPI 扩展同时适用于 VS Code 和 Cursor。你可以在各编辑器的扩展面板中直接搜索 “FastAPI”,并选择由 FastAPI Labs 发布的扩展进行安装。该扩展也适用于基于浏览器的编辑器,例如 vscode.dev 和 github.dev。\n应用发现¶\n默认情况下,扩展会通过扫描实例化了 FastAPI() 的文件…\n\n[2] 标题：自定义 Request 和 APIRoute 类\n来源：web\n内容：.routing import APIRoute\nclass ValidationErrorLoggingRoute(APIRoute):\ndef get_route_handler(self) -> Callable:\noriginal_route_handler = super().get_route_handler()\nasync def custom_route_handler(request: Request) -> Response:\ntry:\nreturn await original_route_handler(request)\nexcept RequestValidation…\n\n[3] 标题：路径操作的高级配置\n来源：web\n内容：由 FastAPI 自动生成,但你也可以扩展它。\n你可以使用参数 openapi_extra 扩展某个 路径操作 的 OpenAPI 方案。\nOpenAPI 扩展¶\n例如,这个 openapi_extra 可用于声明 OpenAPI 扩展:\nfrom fastapi import FastAPI\napp = FastAPI()\n@app.get(\"/items/\", openapi_extra={\"x-aperture-labs-portal\": \"blue\"})\nasync def read_items():\nreturn [{\"item_id\": \"portal-gun\"}]\n当你打开自动…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/editor-support/",
+          "https://fastapi.tiangolo.com/zh/how-to/custom-request-and-route/",
+          "https://fastapi.tiangolo.com/zh/advanced/path-operation-advanced-configuration/",
+          "https://fastapi.tiangolo.com/zh/reference/templating/",
+          "https://fastapi.tiangolo.com/zh/"
+        ],
+        "refused": false,
+        "citation_precision": 0.0,
+        "citation_recall": 0.0,
+        "first_token_ms_p50": 106.5,
+        "total_ms_p50": 110.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2717,
+          "completion_tokens": 455,
+          "total_tokens": 3172,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-neg-002",
+      "question": "FastAPI 内置的 GraphQL 订阅应该怎么实现？",
+      "type": "negative",
+      "split": "dev",
+      "answerable": false,
+      "gold_urls": [],
+      "reference_answer": "根据现有资料无法确定。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/templates/",
+        "https://fastapi.tiangolo.com/zh/",
+        "https://fastapi.tiangolo.com/zh/how-to/graphql/",
+        "https://fastapi.tiangolo.com/zh/tutorial/first-steps/",
+        "https://fastapi.tiangolo.com/zh/how-to/graphql/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 17.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6199404,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": null,
+        "evidence_recall_at_5": null,
+        "mrr": null,
+        "ndcg_at_10": null
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：模板\n来源：web\n内容：Files,该 CSS 文件会由你的 FastAPI 应用在 URL /static/styles.css 自动提供。\n更多说明¶\n包括如何测试模板在内的更多详情,请查看 Starlette 的模板文档。\n\nfrom\n\nfastapi\n\nimport\n\nFastAPI\n,\n\nRequest\n\nfrom\n\nfastapi.responses\n\nimport\n\nHTMLResponse\n\nfrom\n\nfastapi.staticfiles\n\nimport\n\nStaticFiles\n\nfrom\n\nfastapi.templating\n\nimport\n\nJinja2Templates\n\napp\n\n=\n…\n\n[2] 标题：FastAPI\n来源：web\n内容：个路径都接受 GET 操作(也称为 HTTP 方法)。\n- 路径 /items/{item_id} 有一个应为 int 的路径参数 item_id。\n- 路径 /items/{item_id} 有一个可选的 str 类型查询参数 q。\n交互式 API 文档¶\n现在访问 http://127.0.0.1:8000/docs。\n你会看到自动生成的交互式 API 文档(由 Swagger UI 提供):\n可选的 API 文档¶\n然后访问 http://127.0.0.1:8000/redoc。\n你会看到另一个自动生成的文档(由 ReDoc 提供):\n示例升级¶\n现在修改 main.py 文件来接收来…\n\n[3] 标题：GraphQL\n来源：web\n内容：GraphQL¶\n由于 FastAPI 基于 ASGI 标准,因此很容易集成任何也兼容 ASGI 的 GraphQL 库。\n你可以在同一个应用中将常规的 FastAPI 路径操作 与 GraphQL 结合使用。\n提示\nGraphQL 解决一些非常特定的用例。\n与常见的 Web API 相比,它有各自的优点和缺点。\n请确保评估在你的用例中,这些好处是否足以弥补这些缺点。 🤓\nGraphQL 库¶\n以下是一些支持 ASGI 的 GraphQL 库。你可以将它们与 FastAPI 一起使用:\n- Strawberry 🍓\n- Ariadne\n- Tartiflette\n- 提供用于 ASGI 集成的…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/advanced/templates/",
+          "https://fastapi.tiangolo.com/zh/",
+          "https://fastapi.tiangolo.com/zh/how-to/graphql/",
+          "https://fastapi.tiangolo.com/zh/tutorial/first-steps/",
+          "https://fastapi.tiangolo.com/zh/how-to/graphql/"
+        ],
+        "refused": false,
+        "citation_precision": 0.0,
+        "citation_recall": 0.0,
+        "first_token_ms_p50": 19.0,
+        "total_ms_p50": 22.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2517,
+          "completion_tokens": 559,
+          "total_tokens": 3076,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-neg-005",
+      "question": "FastAPI 如何配置 Celery 来执行定时任务？",
+      "type": "negative",
+      "split": "dev",
+      "answerable": false,
+      "gold_urls": [],
+      "reference_answer": "根据现有资料无法确定。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/opentelemetry/",
+        "https://fastapi.tiangolo.com/zh/advanced/opentelemetry/",
+        "https://fastapi.tiangolo.com/zh/how-to/custom-request-and-route/",
+        "https://fastapi.tiangolo.com/zh/",
+        "https://fastapi.tiangolo.com/zh/advanced/advanced-dependencies/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 23.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.61132765,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": null,
+        "evidence_recall_at_5": null,
+        "mrr": null,
+        "ndcg_at_10": null
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：OpenTelemetry\n来源：web\n内容：耗时和活跃请求数的指标。\n自定义遥测¶\n配置 provider 和 exporter¶\nprovider 提供用于记录追踪、指标或日志的对象。其配置决定了这些数据的处理和导出方式。\n遥测库可以配置 OpenTelemetry 的全局 provider。在应用启动之前配置好该库,FastAPI 就会自动使用这些 provider。\n默认情况下,FastAPI 使用已配置的 provider,不会添加 exporter。当启用自动配置且环境中设置了 OTLP 端点时,FastAPI 会为每个已启用的 provider 添加一个向该目标发送数据的 exporter。现有的 exporter 会继续向…\n\n[2] 标题：OpenTelemetry\n来源：web\n内容：到 FastAPI Cloud 时,指标功能会自动工作。你无需进行其他配置。\n使用 Pro 套餐时,你可以在指标仪表板中查看请求数、错误率和响应时间。\n其他监控服务¶\n要将遥测数据发送到其他监控服务,请配置一个接受 OTLP 的端点,OTLP 是 OpenTelemetry 用于发送遥测数据的协议。请使用该服务的 HTTP/protobuf 基础端点。\n设置以下环境变量,将示例 URL 替换为你的端点:\nexport FASTAPI_OTEL_AUTO_CONFIGURE=true\nexport OTEL_SERVICE_NAME=my-api\nexport OTEL_EXPORTER_OTL…\n\n[3] 标题：自定义 Request 和 APIRoute 类\n来源：web\n内容：.routing import APIRoute\nclass ValidationErrorLoggingRoute(APIRoute):\ndef get_route_handler(self) -> Callable:\noriginal_route_handler = super().get_route_handler()\nasync def custom_route_handler(request: Request) -> Response:\ntry:\nreturn await original_route_handler(request)\nexcept RequestValidation…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/advanced/opentelemetry/",
+          "https://fastapi.tiangolo.com/zh/advanced/opentelemetry/",
+          "https://fastapi.tiangolo.com/zh/how-to/custom-request-and-route/",
+          "https://fastapi.tiangolo.com/zh/",
+          "https://fastapi.tiangolo.com/zh/advanced/advanced-dependencies/"
+        ],
+        "refused": false,
+        "citation_precision": 0.0,
+        "citation_recall": 0.0,
+        "first_token_ms_p50": 31.0,
+        "total_ms_p50": 35.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2679,
+          "completion_tokens": 482,
+          "total_tokens": 3161,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    }
+  ]
+}

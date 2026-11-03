@@ -1,0 +1,987 @@
+{
+  "environment": {
+    "date": "2026-11-03",
+    "timestamp": "2026-11-03T01:14:04+08:00",
+    "git_commit": "fbcffd0",
+    "base_url": "http://localhost:8001",
+    "config": "hybrid",
+    "retrieval_mode": "hybrid",
+    "split": "test",
+    "question_count": 15,
+    "runs": 2,
+    "concurrency": 1,
+    "top_k": 5,
+    "candidate_k": 50,
+    "use_cache": false,
+    "score_threshold": null,
+    "filters": {
+      "source": [
+        "web"
+      ]
+    },
+    "retrieval_only": false,
+    "embedding_model": "BAAI/bge-small-zh-v1.5",
+    "embedding_models_seen": [
+      "BAAI/bge-small-zh-v1.5"
+    ],
+    "llm_model": "extractive",
+    "llm_provider": "extractive",
+    "prompt_version": "1",
+    "python": "3.13.3",
+    "worktree_dirty": true
+  },
+  "config": {
+    "name": "hybrid",
+    "retrieval_mode": "hybrid",
+    "top_k": 5,
+    "candidate_k": 50,
+    "filters": {
+      "source": [
+        "web"
+      ]
+    },
+    "use_cache": false,
+    "score_threshold": null,
+    "run_chat": true
+  },
+  "corpus": {
+    "source": [
+      "web"
+    ],
+    "documents": 141,
+    "chunks": 855,
+    "embedding_model": "BAAI/bge-small-zh-v1.5",
+    "dim": 512
+  },
+  "summary": {
+    "retrieval": {
+      "recall_at_5": 0.769231,
+      "evidence_recall_at_5": 0.730769,
+      "mrr": 0.730769,
+      "ndcg_at_10": 0.712621,
+      "n_questions": 13
+    },
+    "generation": {
+      "citation_precision": 0.429487,
+      "citation_recall": 0.730769,
+      "citation_coverage": 1.0,
+      "refusal_accuracy": 0.0,
+      "false_refusal_rate": 0.0,
+      "n_negative": 2,
+      "n_positive": 13,
+      "n_answers_with_citations": 13,
+      "degraded_rate": 0.0,
+      "cache_hit_runs": 0
+    },
+    "performance_ms": {
+      "retrieval_p50": 33.5,
+      "retrieval_p95": 348.45,
+      "first_token_p50": 37.5,
+      "first_token_p95": 433.45,
+      "chat_total_p50": 43.5,
+      "chat_total_p95": 439.5
+    }
+  },
+  "questions": [
+    {
+      "id": "q-g2-010",
+      "question": "如何让基于 Pydantic Settings 的配置类从项目里的 .env 文件读取设置？为什么文档建议配合 @lru_cache 使用？",
+      "type": "procedural",
+      "split": "test",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/settings/"
+      ],
+      "reference_answer": "在 Settings 类里设置 model_config = SettingsConfigDict(env_file=\".env\")（从 pydantic_settings 导入 SettingsConfigDict），即可从 .env 读取配置。文档还建议用 @lru_cache 包装获取设置的函数，避免每个请求都重新读取 dotenv 文件，同时仍便于在测试中覆盖。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/settings/",
+        "https://fastapi.tiangolo.com/zh/advanced/settings/",
+        "https://fastapi.tiangolo.com/zh/advanced/settings/",
+        "https://fastapi.tiangolo.com/zh/advanced/settings/",
+        "https://fastapi.tiangolo.com/zh/advanced/settings/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 272.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.8082224,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：设置和环境变量\n来源：web\n内容：ADMIN_EMAIL=\"deadpool@example.com\"\nAPP_NAME=\"ChimichangApp\"\n从 .env 中读取设置¶\n然后更新 config.py:\nfrom pydantic_settings import BaseSettings, SettingsConfigDict\nclass Settings(BaseSettings):\napp_name: str = \"Awesome API\"\nadmin_email: str\nitems_per_user: int = 50\nmodel_config = SettingsConfigDict(env_file=\".…\n\n[2] 标题：设置和环境变量\n来源：web\n内容：你可以与它一起使用 .env 文件。\n- 使用 @lru_cache 可以避免为每个请求反复读取 dotenv 文件,同时允许你在测试时进行覆盖。\n\nfrom\n\nfastapi\n\nimport\n\nFastAPI\n\nfrom\n\npydantic_settings\n\nimport\n\nBaseSettings\n\nclass\n\nSettings\n(\nBaseSettings\n):\n\napp_name\n:\n\nstr\n\n=\n\n\"Awesome API\"\n\nadmin_email\n:\n\nstr\n\nitems_per_user\n:\n\nint\n\n=\n\n50\n\nsettings\n\n=\n\nSettings\n()\n\n…\n\n[3] 标题：设置和环境变量\n来源：web\n内容：app = FastAPI()\n@lru_cache\ndef get_settings():\nreturn Settings()\n@app.get(\"/info\")\nasync def info(settings: Settings = Depends(get_settings)):\nreturn {\n\"app_name\": settings.app_name,\n\"admin_email\": settings.admin_email,\n\"items_per_user\": settings.items_per_user,\n}\n提示\n我们稍后会讨论 @lru_cache。\n目前你可以把 get_s…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/advanced/settings/",
+          "https://fastapi.tiangolo.com/zh/advanced/settings/",
+          "https://fastapi.tiangolo.com/zh/advanced/settings/",
+          "https://fastapi.tiangolo.com/zh/advanced/settings/",
+          "https://fastapi.tiangolo.com/zh/advanced/settings/"
+        ],
+        "refused": false,
+        "citation_precision": 1.0,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 294.5,
+        "total_ms_p50": 297.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2730,
+          "completion_tokens": 364,
+          "total_tokens": 3094,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-011",
+      "question": "想让 /docs 页面改用应用自己托管的 Swagger UI 静态文件，需要做哪些关键步骤？",
+      "type": "procedural",
+      "split": "test",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/how-to/custom-docs-ui-assets/"
+      ],
+      "reference_answer": "先创建应用时把 docs_url 和 redoc_url 设为 None 以关闭默认 CDN 文档，再用 StaticFiles 把静态目录挂载到 /static。然后自定义 /docs 路径操作，调用 get_swagger_ui_html 并把 swagger_js_url、swagger_css_url 指向自托管的 /static/swagger-ui-bundle.js 和 /static/swagger-ui.css。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/how-to/custom-docs-ui-assets/",
+        "https://fastapi.tiangolo.com/zh/reference/openapi/docs/",
+        "https://fastapi.tiangolo.com/zh/how-to/custom-docs-ui-assets/",
+        "https://fastapi.tiangolo.com/zh/how-to/custom-docs-ui-assets/",
+        "https://fastapi.tiangolo.com/zh/how-to/custom-docs-ui-assets/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 30.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6780745,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：自托管自定义文档 UI 静态资源\n来源：web\n内容：swagger_css_url:你的 Swagger UI 文档 HTML 获取CSS 文件的 URL。这是现在由你的应用自己提供的那个。\nReDoc 也类似...\nfrom fastapi import FastAPI\nfrom fastapi.openapi.docs import (\nget_redoc_html,\nget_swagger_ui_html,\nget_swagger_ui_oauth2_redirect_html,\n)\nfrom fastapi.staticfiles import StaticFiles\napp = FastAPI(docs_url=None, redoc…\n\n[2] 标题：OpenAPI docs\n来源：web\n内容：OpenAPI docs¶\nUtilities to handle OpenAPI automatic UI documentation, including Swagger UI (by default at /docs) and ReDoc (by default at /redoc).\nget_swagger_ui_html(\n*,\nopenapi_url,\ntitle,\nswagger_js_url=\"https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js\",\nswagger_css_url=\"https:…\n\n[3] 标题：自托管自定义文档 UI 静态资源\n来源：web\n内容：自托管自定义文档 UI 静态资源¶\nAPI 文档使用 Swagger UI 和 ReDoc,它们各自需要一些 JavaScript 和 CSS 文件。\n默认情况下,这些文件从一个 CDN 提供。\n不过你可以自定义:可以指定特定的 CDN,或自行提供这些文件。\n为 JavaScript 和 CSS 自定义 CDN¶\n假设你想使用不同的 CDN,例如使用 https://unpkg.com/。\n如果你所在的国家/地区屏蔽了某些 URL,这会很有用。\n关闭自动文档¶\n第一步是关闭自动文档,因为默认它们会使用默认的 CDN。\n要关闭它们,在创建 FastAPI 应用时将其 URL 设为 None:\nf…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/how-to/custom-docs-ui-assets/",
+          "https://fastapi.tiangolo.com/zh/reference/openapi/docs/",
+          "https://fastapi.tiangolo.com/zh/how-to/custom-docs-ui-assets/",
+          "https://fastapi.tiangolo.com/zh/how-to/custom-docs-ui-assets/",
+          "https://fastapi.tiangolo.com/zh/how-to/custom-docs-ui-assets/"
+        ],
+        "refused": false,
+        "citation_precision": 0.5,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 32.0,
+        "total_ms_p50": 38.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2754,
+          "completion_tokens": 462,
+          "total_tokens": 3216,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-012",
+      "question": "怎样在创建 FastAPI 应用时关闭 Swagger UI 的语法高亮？",
+      "type": "procedural",
+      "split": "test",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/how-to/configure-swagger-ui/"
+      ],
+      "reference_answer": "创建应用时传入 swagger_ui_parameters={\"syntaxHighlight\": False} 即可关闭语法高亮。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/how-to/configure-swagger-ui/",
+        "https://fastapi.tiangolo.com/zh/how-to/custom-docs-ui-assets/",
+        "https://fastapi.tiangolo.com/zh/how-to/configure-swagger-ui/",
+        "https://fastapi.tiangolo.com/zh/advanced/advanced-dependencies/",
+        "https://fastapi.tiangolo.com/zh/reference/openapi/docs/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 25.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.68822056,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：配置 Swagger UI\n来源：web\n内容：配置 Swagger UI¶\n你可以配置一些额外的 Swagger UI 参数。\n如果需要配置它们,可以在创建 FastAPI() 应用对象时或调用 get_swagger_ui_html() 函数时传递 swagger_ui_parameters 参数。\nswagger_ui_parameters 接受一个字典,该字典会直接传递给 Swagger UI。\nFastAPI会将这些配置转换为 JSON,使其与 JavaScript 兼容,因为这是 Swagger UI 需要的。\n禁用语法高亮¶\n比如,你可以禁用 Swagger UI 中的语法高亮。\n当没有改变设置时,语法高亮默认启用:\n但是你可…\n\n[2] 标题：自托管自定义文档 UI 静态资源\n来源：web\n内容：关闭它们,在创建 FastAPI 应用时将其 URL 设为 None:\nfrom fastapi import FastAPI\nfrom fastapi.openapi.docs import (\nget_redoc_html,\nget_swagger_ui_html,\nget_swagger_ui_oauth2_redirect_html,\n)\nfrom fastapi.staticfiles import StaticFiles\napp = FastAPI(docs_url=None, redoc_url=None)\napp.mount(\"/static\", StaticFiles(dir…\n\n[3] 标题：配置 Swagger UI\n来源：web\n内容：CSS.\nRead more about it in the\n[FastAPI docs for Custom Docs UI Static Assets (Self-Hosting)](https://fastapi.tiangolo.com/how-to/custom-docs-ui-assets/).\n\"\"\"\nhtml = f\"\"\"\n\n{title}\n\n\"\"\"\nif with_google_fonts:\nhtml += \"\"\"\n\n\"\"\"\nhtml += f\"\"\"\n\nReDoc requires Javascript to function. Please enable it to bro…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/how-to/configure-swagger-ui/",
+          "https://fastapi.tiangolo.com/zh/how-to/custom-docs-ui-assets/",
+          "https://fastapi.tiangolo.com/zh/how-to/configure-swagger-ui/",
+          "https://fastapi.tiangolo.com/zh/advanced/advanced-dependencies/",
+          "https://fastapi.tiangolo.com/zh/reference/openapi/docs/"
+        ],
+        "refused": false,
+        "citation_precision": 0.25,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 37.5,
+        "total_ms_p50": 43.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2658,
+          "completion_tokens": 405,
+          "total_tokens": 3063,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-013",
+      "question": "在测试中如何用测试专用实现替换某个原有依赖项？测试结束后要注意什么？",
+      "type": "procedural",
+      "split": "test",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/testing-dependencies/"
+      ],
+      "reference_answer": "把原依赖项函数作为键、测试专用函数作为值写入 app.dependency_overrides 字典，例如 app.dependency_overrides[common_parameters] = override_dependency，FastAPI 就会调用覆盖项。测试结束后需要重置这些覆盖项，避免影响其他测试。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/testing-dependencies/",
+        "https://fastapi.tiangolo.com/zh/tutorial/dependencies/classes-as-dependencies/",
+        "https://fastapi.tiangolo.com/zh/tutorial/dependencies/sub-dependencies/",
+        "https://fastapi.tiangolo.com/zh/tutorial/dependencies/sub-dependencies/",
+        "https://fastapi.tiangolo.com/zh/tutorial/dependencies/dependencies-with-yield/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 28.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6881287,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：使用覆盖测试依赖项\n来源：web\n内容：使用覆盖测试依赖项¶\n测试时覆盖依赖项¶\n有些场景下,您可能需要在测试时覆盖依赖项。\n即不希望运行原有依赖项(及其子依赖项)。\n反之,要在测试期间(或只是为某些特定测试)提供只用于测试的依赖项,并使用此依赖项的值替换原有依赖项的值。\n用例:外部服务¶\n常见实例是调用外部第三方身份验证应用。\n向第三方应用发送令牌,然后返回经验证的用户。\n但第三方服务商处理每次请求都可能会收费,并且耗时通常也比调用写死的模拟测试用户更长。\n一般只要测试一次外部验证应用就够了,不必每次测试都去调用。\n此时,最好覆盖调用外部验证应用的依赖项,使用返回模拟测试用户的自定义依赖项就可以了。\n使用 app.dependen…\n\n[2] 标题：类作为依赖项\n来源：web\n内容：类作为依赖项¶\n在深入探究 依赖注入 系统之前,让我们升级之前的例子。\n来自前一个例子的dict¶\n在前面的例子中, 我们从依赖项 (\"可依赖对象\") 中返回了一个 dict:\nfrom typing import Annotated\nfrom fastapi import Depends, FastAPI\napp = FastAPI()\nasync def common_parameters(q: str | None = None, skip: int = 0, limit: int = 100):\nreturn {\"q\": q, \"skip\": skip, \"limit\": limit}…\n\n[3] 标题：子依赖项\n来源：web\n内容：子依赖项¶\nFastAPI 支持创建含子依赖项的依赖项。\n并且,可以按需声明任意深度的子依赖项嵌套层级。\nFastAPI 负责处理解析不同深度的子依赖项。\n第一层依赖项 “dependable”¶\n你可以创建一个第一层依赖项(“dependable”),如下:\nfrom typing import Annotated\nfrom fastapi import Cookie, Depends, FastAPI\napp = FastAPI()\ndef query_extractor(q: str | None = None):\nreturn q\ndef query_or_cookie_extract…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/advanced/testing-dependencies/",
+          "https://fastapi.tiangolo.com/zh/tutorial/dependencies/classes-as-dependencies/",
+          "https://fastapi.tiangolo.com/zh/tutorial/dependencies/sub-dependencies/",
+          "https://fastapi.tiangolo.com/zh/tutorial/dependencies/sub-dependencies/",
+          "https://fastapi.tiangolo.com/zh/tutorial/dependencies/dependencies-with-yield/"
+        ],
+        "refused": false,
+        "citation_precision": 0.25,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 31.0,
+        "total_ms_p50": 36.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2708,
+          "completion_tokens": 679,
+          "total_tokens": 3387,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-014",
+      "question": "fastapi dev 和 fastapi run 在监听地址、自动重载和适用环境上有什么主要区别？",
+      "type": "comparison",
+      "split": "test",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/fastapi-cli/",
+        "https://fastapi.tiangolo.com/zh/deployment/manually/"
+      ],
+      "reference_answer": "fastapi dev 用于开发环境，默认开启自动重载并监听 127.0.0.1；fastapi run 用于生产，默认关闭自动重载并监听 0.0.0.0，以便容器或外部客户端访问。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/fastapi-cli/",
+        "https://fastapi.tiangolo.com/zh/fastapi-cli/",
+        "https://fastapi.tiangolo.com/zh/fastapi-cli/",
+        "https://fastapi.tiangolo.com/zh/",
+        "https://fastapi.tiangolo.com/zh/tutorial/stream-json-lines/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 24.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.72037274,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 0.5,
+        "mrr": 1.0,
+        "ndcg_at_10": 0.6131471927654584
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：FastAPI CLI\n来源：web\n内容：启用时更不稳定,因此你应该仅在开发环境下使用它。它还会监听 IP 地址 127.0.0.1,这是你的机器仅与自身通信的 IP(localhost)。\n在导入你的应用之前,fastapi dev 会将 FASTAPI_ENV 环境变量设置为 development。如果 FASTAPI_ENV 已经设置,则会保留其现有值。这让应用启动代码可以选择适合开发的行为,同时允许你提供应用特定的环境,例如 staging。\n约定的 FASTAPI_ENV 值是 development 和 production。fastapi run 目前会保持 FASTAPI_ENV 不变,因此如果你的应用需要检测生产模…\n\n[2] 标题：FastAPI CLI\n来源：web\n内容：FastAPI CLI¶\nFastAPI CLI 是一个命令行程序,你可以用它来部署和运行你的 FastAPI 应用、管理 FastAPI 项目,等等。\n当你将 FastAPI 添加到你的项目中(例如使用 uv add \"fastapi[standard]\")时,会附带一个可以在终端中运行的命令行程序。\n要在开发环境中运行你的 FastAPI 应用,可以使用 fastapi dev 命令:\n$ fastapi dev\nFastAPI Starting development server 🚀\nSearching for package file structure from directori…\n\n[3] 标题：FastAPI CLI\n来源：web\n内容：数其他变体)。\n但你也可以显式配置要使用的应用。\n在 pyproject.toml 中配置应用的 entrypoint¶\n你可以在 pyproject.toml 文件中配置应用的位置,例如:\n[tool.fastapi]\nentrypoint = \"main:app\"\n这个 entrypoint 会告诉 fastapi 命令按如下方式导入应用:\nfrom main import app\n如果你的代码结构如下:\n.\n├── backend\n│ ├── main.py\n│ ├── __init__.py\n那么你可以将 entrypoint 设置为:\n[tool.fastapi]\nentrypoin…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/fastapi-cli/",
+          "https://fastapi.tiangolo.com/zh/fastapi-cli/",
+          "https://fastapi.tiangolo.com/zh/fastapi-cli/",
+          "https://fastapi.tiangolo.com/zh/",
+          "https://fastapi.tiangolo.com/zh/tutorial/stream-json-lines/"
+        ],
+        "refused": false,
+        "citation_precision": 0.3333333333333333,
+        "citation_recall": 0.5,
+        "first_token_ms_p50": 28.0,
+        "total_ms_p50": 31.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2646,
+          "completion_tokens": 547,
+          "total_tokens": 3193,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-015",
+      "question": "直接运行 Uvicorn 与在 Kubernetes 集群中运行容器时，多进程复制的方式有什么不同？Docker Compose 单机场景又如何？",
+      "type": "comparison",
+      "split": "test",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/deployment/concepts/",
+        "https://fastapi.tiangolo.com/zh/deployment/docker/"
+      ],
+      "reference_answer": "直接运行 Uvicorn 时可以用 --workers 启动多个工作进程。Kubernetes 等分布式容器系统通常在集群层面完成复制、每个容器只运行一个 Uvicorn 进程，因此不建议在容器内再加多个 worker；而 Docker Compose 部署到单台服务器时，可以在一个容器内启动多个 worker。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/websockets/",
+        "https://fastapi.tiangolo.com/zh/deployment/concepts/",
+        "https://fastapi.tiangolo.com/zh/reference/websockets/",
+        "https://fastapi.tiangolo.com/zh/deployment/docker/",
+        "https://fastapi.tiangolo.com/zh/reference/websockets/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 33.5,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6967939,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 0.5,
+        "ndcg_at_10": 0.6509209298071326
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：WebSockets\n来源：web\n内容：。\n如果您需要与 FastAPI 集成更简单但更健壮的方案,支持 Redis、PostgreSQL 或其他,请查看 encode/broadcaster。\n更多信息¶\n要了解更多选项,请查看 Starlette 的文档:\n\nfrom\n\nfastapi\n\nimport\n\nFastAPI\n,\n\nWebSocket\n\nfrom\n\nfastapi.responses\n\nimport\n\nHTMLResponse\n\napp\n\n=\n\nFastAPI\n()\n\nhtml\n\n=\n\n\"\"\"\n\nChat\n\nWebSocket Chat\n\nSend\n\n\"\"\"\n\n@app\n.\nget\n(\n\"/\"\n)\n\nasync\n\nde…\n\n[2] 标题：部署概念\n来源：web\n内容：其他进程。\n一个有趣的细节是,随着时间的推移,每个进程使用的 CPU 百分比可能会发生很大变化,但内存 (RAM) 通常会或多或少保持稳定。\n如果你有一个每次执行相当数量的计算的 API,并且你有很多客户端,那么 CPU 利用率 可能也会保持稳定(而不是不断快速上升和下降)。\n复制工具和策略示例¶\n可以通过多种方法来实现这一目标,我将在接下来的章节中向你详细介绍具体策略,例如在谈论 Docker 和容器时。\n要考虑的主要限制是必须有一个单个组件来处理公共 IP 中的端口。然后它必须有一种方法将通信传输到复制的进程/worker。\n以下是一些可能的组合和策略:\n- 带有 --workers 的 …\n\n[3] 标题：WebSockets\n来源：web\n内容：Expected ASGI message \"websocket.receive\" or \"websocket.disconnect\", but got {message_type!r}'\n)\nif message_type == \"websocket.disconnect\":\nself.client_state = WebSocketState.DISCONNECTED\nreturn message\nelse:\nraise WebSocketDisconnected('Cannot call \"receive\" once a disconnect message has been recei…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/advanced/websockets/",
+          "https://fastapi.tiangolo.com/zh/deployment/concepts/",
+          "https://fastapi.tiangolo.com/zh/reference/websockets/",
+          "https://fastapi.tiangolo.com/zh/deployment/docker/",
+          "https://fastapi.tiangolo.com/zh/reference/websockets/"
+        ],
+        "refused": false,
+        "citation_precision": 0.5,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 40.0,
+        "total_ms_p50": 43.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2604,
+          "completion_tokens": 522,
+          "total_tokens": 3126,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-016",
+      "question": "文档用「程序与进程」和「容器镜像与容器」这两组概念做了怎样的类比？",
+      "type": "comparison",
+      "split": "test",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/deployment/concepts/",
+        "https://fastapi.tiangolo.com/zh/deployment/docker/"
+      ],
+      "reference_answer": "文档把程序类比为容器镜像：镜像是静态打包的文件和元数据；把进程类比为容器：容器是镜像的实际运行实例，只有在其中进程运行时才处于运行状态。也就是说，程序代码本身不做事，运行起来的进程才做事；镜像本身不运行，启动后的容器才运行。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/deployment/docker/",
+        "https://fastapi.tiangolo.com/zh/deployment/docker/",
+        "https://fastapi.tiangolo.com/zh/deployment/docker/",
+        "https://fastapi.tiangolo.com/zh/deployment/concepts/",
+        "https://fastapi.tiangolo.com/zh/deployment/docker/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 20.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6665653,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：容器中的 FastAPI - Docker\n来源：web\n内容：有各自隔离的运行进程(通常只有一个)、文件系统和网络,简化了部署、安全、开发等。\n什么是容器镜像¶\n容器是从容器镜像运行的。\n容器镜像是容器中所有文件、环境变量以及应该运行的默认命令/程序的一个静态版本。这里的静态指容器镜像本身并不在运行,仅仅是被打包的文件和元数据。\n与存放静态内容的“容器镜像”相对,“容器”通常指一个正在运行的实例,即正在被执行的东西。\n当容器启动并运行(从容器镜像启动)后,它可以创建或修改文件、环境变量等。这些更改只存在于该容器中,不会持久化到底层的容器镜像中(不会写回磁盘)。\n容器镜像可类比为程序文件及其内容,例如 python 和某个文件 main.py。\n而容器本身…\n\n[2] 标题：容器中的 FastAPI - Docker\n来源：web\n内容：许多工具、环境、数据库和应用提供了预制的官方容器镜像。\n例如,有官方的 Python 镜像。\n还有许多用于不同目的(如数据库)的镜像,例如:\n通过使用预制的容器镜像,可以很容易地组合并使用不同工具。例如,试用一个新的数据库。在大多数情况下,你可以直接使用官方镜像,只需通过环境变量配置即可。\n这样,在很多场景中你可以学习容器和 Docker,并将这些知识复用到许多不同的工具和组件中。\n因此,你可以运行包含不同内容的多个容器,比如一个数据库、一个 Python 应用、一个带 React 前端的 Web 服务器,并通过它们的内部网络连接在一起。\n所有容器管理系统(如 Docker 或 Kuberne…\n\n[3] 标题：容器中的 FastAPI - Docker\n来源：web\n内容：容器中的 FastAPI - Docker¶\n部署 FastAPI 应用时,常见做法是构建一个Linux 容器镜像。通常使用 Docker 实现。然后你可以用几种方式之一部署该镜像。\n使用 Linux 容器有多种优势,包括安全性、可复制性、简单性等。\n提示\n赶时间并且已经了解这些?直接跳到下面的 Dockerfile 👇。\nDockerfile 预览 👀\nFROM python:3.14\nWORKDIR /code\nCOPY ./requirements.txt /code/requirements.txt\nRUN pip install --no-cache-dir --upgrade -r…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/deployment/docker/",
+          "https://fastapi.tiangolo.com/zh/deployment/docker/",
+          "https://fastapi.tiangolo.com/zh/deployment/docker/",
+          "https://fastapi.tiangolo.com/zh/deployment/concepts/",
+          "https://fastapi.tiangolo.com/zh/deployment/docker/"
+        ],
+        "refused": false,
+        "citation_precision": 1.0,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 26.0,
+        "total_ms_p50": 28.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2675,
+          "completion_tokens": 778,
+          "total_tokens": 3453,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-017",
+      "question": "OpenAPI 回调（callbacks）与网络钩子（webhooks）分别描述什么出站请求？在 FastAPI 中各自怎么声明？",
+      "type": "comparison",
+      "split": "test",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/openapi-callbacks/",
+        "https://fastapi.tiangolo.com/zh/advanced/openapi-webhooks/"
+      ],
+      "reference_answer": "OpenAPI 回调描述的是你的 API 在处理外部开发者请求后，会去调用的那个外部 API；在 FastAPI 中把回调路由的 .routes 传给路径操作的 callbacks 参数来声明。网络钩子描述的是你的应用在事件发生时向用户系统发送的请求，用户负责提供接收 URL；在 FastAPI 中用 app.webhooks.post() 之类的方式声明。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/openapi-webhooks/",
+        "https://fastapi.tiangolo.com/zh/advanced/openapi-callbacks/",
+        "https://fastapi.tiangolo.com/zh/advanced/openapi-webhooks/",
+        "https://fastapi.tiangolo.com/zh/advanced/openapi-callbacks/",
+        "https://fastapi.tiangolo.com/zh/advanced/openapi-callbacks/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 92.5,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6389233,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：OpenAPI 网络钩子\n来源：web\n内容：自动生成一些自己的 API 代码。\n注意\n网络钩子在 OpenAPI 3.1.0 及以上版本中可用,FastAPI 0.99.0 及以上版本支持。\n带有网络钩子的应用程序¶\n当您创建一个 FastAPI 应用程序时,有一个 webhooks 属性可以用来定义网络钩子,方式与您定义路径操作的时候相同,例如使用 @app.webhooks.post() 。\nfrom datetime import datetime\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel\napp = FastAPI()\nclass Subscriptio…\n\n[2] 标题：OpenAPI 回调\n来源：web\n内容：个回调。\nfrom fastapi import APIRouter, FastAPI\nfrom pydantic import BaseModel, HttpUrl\napp = FastAPI()\nclass Invoice(BaseModel):\nid: str\ntitle: str | None = None\ncustomer: str\ntotal: float\nclass InvoiceEvent(BaseModel):\ndescription: str\npaid: bool\nclass InvoiceEventReceived(BaseModel):\nok: bool\ninvoice…\n\n[3] 标题：OpenAPI 网络钩子\n来源：web\n内容：OpenAPI 网络钩子¶\n有些情况下,您可能想告诉您的 API 用户,您的应用程序可以携带一些数据调用他们的应用程序(给它们发送请求),通常是为了通知某种事件。\n这意味着,与通常由您的用户向您的 API 发送请求的流程相反,是您的 API(或您的应用)可以向他们的系统(他们的 API、他们的应用)发送请求。\n这通常被称为网络钩子(Webhook)。\n使用网络钩子的步骤¶\n通常的过程是您在代码中定义要发送的消息,即请求的主体。\n您还需要以某种方式定义您的应用程序将在何时发送这些请求或事件。\n用户会以某种方式(例如在某个网页仪表板上)定义您的应用程序发送这些请求应该使用的 URL。\n所有关于注册…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/advanced/openapi-webhooks/",
+          "https://fastapi.tiangolo.com/zh/advanced/openapi-callbacks/",
+          "https://fastapi.tiangolo.com/zh/advanced/openapi-webhooks/",
+          "https://fastapi.tiangolo.com/zh/advanced/openapi-callbacks/",
+          "https://fastapi.tiangolo.com/zh/advanced/openapi-callbacks/"
+        ],
+        "refused": false,
+        "citation_precision": 1.0,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 122.0,
+        "total_ms_p50": 125.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2683,
+          "completion_tokens": 552,
+          "total_tokens": 3235,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-018",
+      "question": "生成 TypeScript 客户端时，文档推荐哪个专为 TypeScript 生态打造的工具？对应的 npx 命令是什么？",
+      "type": "detail",
+      "split": "test",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/generate-clients/"
+      ],
+      "reference_answer": "文档推荐使用专为 TypeScript 生态打造的 Hey API，最快方式是通过 npx：npx @hey-api/openapi-ts -i http://localhost:8000/openapi.json -o src/client。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/generate-clients/",
+        "https://fastapi.tiangolo.com/zh/advanced/generate-clients/",
+        "https://fastapi.tiangolo.com/zh/how-to/separate-openapi-schemas/",
+        "https://fastapi.tiangolo.com/zh/reference/testclient/",
+        "https://fastapi.tiangolo.com/zh/tutorial/frontend/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 126.5,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6834603,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：生成 SDK\n来源：web\n内容：生成 SDK¶\n因为 FastAPI 基于 OpenAPI 规范,它的 API 可以用许多工具都能理解的标准格式来描述。\n这让你可以轻松生成最新的文档、多语言的客户端库(SDKs),以及与代码保持同步的测试或自动化工作流。\n本指南将带你为 FastAPI 后端生成一个 TypeScript SDK。\n开源 SDK 生成器¶\n一个功能多样的选择是 OpenAPI Generator,它支持多种编程语言,可以根据你的 OpenAPI 规范生成 SDK。\n对于 TypeScript 客户端,Hey API 是为 TypeScript 生态打造的专用方案,提供优化的使用体验。\n你还可以在 OpenAP…\n\n[2] 标题：生成 SDK\n来源：web\n内容：和响应接收数据的模式:\n之所以能看到这些模式,是因为它们在应用中用模型声明了。\n这些信息会包含在应用的 OpenAPI 模式 中,并显示在 API 文档里。\nOpenAPI 中包含的这些模型信息就是用于生成客户端代码的基础。\nHey API¶\n当我们有了带模型的 FastAPI 应用后,可以使用 Hey API 来生成 TypeScript 客户端。最快的方式是通过 npx。\nnpx @hey-api/openapi-ts -i http://localhost:8000/openapi.json -o src/client\n这会在 ./src/client 生成一个 TypeScript S…\n\n[3] 标题：是否为输入和输出分别生成 OpenAPI JSON Schema\n来源：web\n内容：据它用于输入还是输出而有所不同:\n- 用于输入时,description 不是必填\n- 用于输出时,它是必填(并且可能为 None,在 JSON 中为 null)\n文档中的输出模型¶\n你也可以在文档中查看输出模型,name 和 description 都被红色星号标记为必填:\n文档中的输入/输出模型¶\n如果你查看 OpenAPI 中可用的所有 Schema(JSON Schema),你会看到有两个,一个是 Item-Input,一个是 Item-Output。\n对于 Item-Input,description 不是必填,没有红色星号。\n但对于 Item-Output,description …",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/advanced/generate-clients/",
+          "https://fastapi.tiangolo.com/zh/advanced/generate-clients/",
+          "https://fastapi.tiangolo.com/zh/how-to/separate-openapi-schemas/",
+          "https://fastapi.tiangolo.com/zh/reference/testclient/",
+          "https://fastapi.tiangolo.com/zh/tutorial/frontend/"
+        ],
+        "refused": false,
+        "citation_precision": 0.25,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 124.5,
+        "total_ms_p50": 127.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2699,
+          "completion_tokens": 606,
+          "total_tokens": 3305,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-019",
+      "question": "在 Pydantic 模型里让 bytes 字段以 base64 接收和序列化，需要设置哪两个 model_config 键？",
+      "type": "detail",
+      "split": "test",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/json-base64-bytes/"
+      ],
+      "reference_answer": "输入侧用 val_json_bytes，输出侧用 ser_json_bytes，把它们的值设为 \"base64\"。例如 model_config = {\"val_json_bytes\": \"base64\", \"ser_json_bytes\": \"base64\"} 可同时支持 base64 输入验证和输出序列化。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/json-base64-bytes/",
+        "https://fastapi.tiangolo.com/zh/advanced/json-base64-bytes/",
+        "https://fastapi.tiangolo.com/zh/advanced/json-base64-bytes/",
+        "https://fastapi.tiangolo.com/zh/advanced/json-base64-bytes/",
+        "https://fastapi.tiangolo.com/zh/reference/responses/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 39.5,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.7240788,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 1.0,
+        "evidence_recall_at_5": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：在 JSON 中使用 Base64 表示字节\n来源：web\n内容：api import FastAPI\nfrom pydantic import BaseModel\nclass DataInput(BaseModel):\ndescription: str\ndata: bytes\nmodel_config = {\"val_json_bytes\": \"base64\"}\nclass DataOutput(BaseModel):\ndescription: str\ndata: bytes\nmodel_config = {\"ser_json_bytes\": \"base64\"}\nclass DataInputOutput(BaseModel):\ndescription: …\n\n[2] 标题：在 JSON 中使用 Base64 表示字节\n来源：web\n内容：InputOutput(BaseModel):\ndescription: str\ndata: bytes\nmodel_config = {\n\"val_json_bytes\": \"base64\",\n\"ser_json_bytes\": \"base64\",\n}\napp = FastAPI()\n@app.post(\"/data\")\ndef post_data(body: DataInput):\ncontent = body.data.decode(\"utf-8\")\nreturn {\"description\": body.description, \"content\": content}\n@app.get…\n\n[3] 标题：在 JSON 中使用 Base64 表示字节\n来源：web\n内容：ser_json_bytes\": \"base64\"}\nclass DataInputOutput(BaseModel):\ndescription: str\ndata: bytes\nmodel_config = {\n\"val_json_bytes\": \"base64\",\n\"ser_json_bytes\": \"base64\",\n}\napp = FastAPI()\n@app.post(\"/data\")\ndef post_data(body: DataInput):\ncontent = body.data.decode(\"utf-8\")\nreturn {\"description\": body.desc…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/advanced/json-base64-bytes/",
+          "https://fastapi.tiangolo.com/zh/advanced/json-base64-bytes/",
+          "https://fastapi.tiangolo.com/zh/advanced/json-base64-bytes/",
+          "https://fastapi.tiangolo.com/zh/advanced/json-base64-bytes/",
+          "https://fastapi.tiangolo.com/zh/reference/responses/"
+        ],
+        "refused": false,
+        "citation_precision": 0.5,
+        "citation_recall": 1.0,
+        "first_token_ms_p50": 44.0,
+        "total_ms_p50": 46.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2767,
+          "completion_tokens": 326,
+          "total_tokens": 3093,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-020",
+      "question": "在 FastAPI 中怎样用 status 模块表示 403 禁止访问状态码？该常量的数值是多少？",
+      "type": "detail",
+      "split": "test",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/reference/status/"
+      ],
+      "reference_answer": "从 fastapi 导入 status 模块，例如 from fastapi import status；403 对应常量 status.HTTP_403_FORBIDDEN，其值为 403。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/response-status-code/",
+        "https://fastapi.tiangolo.com/zh/tutorial/response-status-code/",
+        "https://fastapi.tiangolo.com/zh/advanced/security/http-basic-auth/",
+        "https://fastapi.tiangolo.com/zh/advanced/additional-status-codes/",
+        "https://fastapi.tiangolo.com/zh/advanced/response-change-status-code/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 34.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.7182815,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 0.0,
+        "evidence_recall_at_5": 0.0,
+        "mrr": 0.0,
+        "ndcg_at_10": 0.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：响应状态码\n来源：web\n内容：响应状态码¶\n与指定响应模型的方式相同,在以下任意路径操作中,可以使用 status_code 参数声明用于响应的 HTTP 状态码:\n- @app.get()\n- @app.post()\n- @app.put()\n- @app.delete()\n- 等。\nfrom fastapi import FastAPI\napp = FastAPI()\n@app.post(\"/items/\", status_code=201)\nasync def create_item(name: str):\nreturn {\"name\": name}\n注意\n注意,status_code 是(get、post 等)装饰…\n\n[2] 标题：响应状态码\n来源：web\n内容：示“已创建”,通常在数据库中创建新记录后使用\n- 204 是一种特殊的例子,表示“无内容”。该响应在没有为客户端返回内容时使用,因此,该响应不能包含响应体\n- 300 - 399 用于“重定向”。具有这些状态码的响应不一定包含响应体,但 304“未修改”是个例外,该响应不得包含响应体\n- 400 - 499 用于表示“客户端错误”。这些可能是第二常用的类型\n- 404,用于“未找到”响应\n- 对于来自客户端的一般错误,可以只使用 400\n- 500 - 599 用于表示服务器端错误。几乎永远不会直接使用这些状态码。应用代码或服务器出现问题时,会自动返回这些状态码\n提示\n想了解每个状态码的更多信…\n\n[3] 标题：HTTP 基础授权\n来源：web\n内容：测到凭证不正确后,返回 HTTPException 及状态码 401(与无凭证时返回的内容一样),并添加响应头 WWW-Authenticate,让浏览器再次显示登录提示:\nimport secrets\nfrom typing import Annotated\nfrom fastapi import Depends, FastAPI, HTTPException, status\nfrom fastapi.security import HTTPBasic, HTTPBasicCredentials\napp = FastAPI()\nsecurity = HTTPBasic()\ndef get_c…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/response-status-code/",
+          "https://fastapi.tiangolo.com/zh/tutorial/response-status-code/",
+          "https://fastapi.tiangolo.com/zh/advanced/security/http-basic-auth/",
+          "https://fastapi.tiangolo.com/zh/advanced/additional-status-codes/",
+          "https://fastapi.tiangolo.com/zh/advanced/response-change-status-code/"
+        ],
+        "refused": false,
+        "citation_precision": 0.0,
+        "citation_recall": 0.0,
+        "first_token_ms_p50": 36.5,
+        "total_ms_p50": 38.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2735,
+          "completion_tokens": 556,
+          "total_tokens": 3291,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-021",
+      "question": "在普通 def 路径操作函数里，如何访问 UploadFile 参数底层的标准 Python 文件对象？",
+      "type": "detail",
+      "split": "test",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/reference/uploadfile/"
+      ],
+      "reference_answer": "在普通 def 路径操作中，可以通过 UploadFile 参数的 .file 属性访问底层的标准 Python 文件对象，例如 upload_file.file。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/using-request-directly/",
+        "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+        "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+        "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 461.5,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.6836099,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 0.0,
+        "evidence_recall_at_5": 0.0,
+        "mrr": 0.0,
+        "ndcg_at_10": 0.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：直接使用 Request\n来源：web\n内容：直接使用 Request¶\n至此,我们已经使用多种类型声明了请求的各种组件。\n并从以下对象中提取数据:\n- 路径参数\n- 请求头\n- Cookies\n- 等\nFastAPI 使用这种方式验证数据、转换数据,并自动生成 API 文档。\n但有时,我们也需要直接访问 Request 对象。\nRequest 对象的细节¶\n实际上,FastAPI 的底层是 Starlette,FastAPI 只不过是在 Starlette 顶层提供了一些工具,所以能直接使用 Starlette 的 Request 对象。\n但直接从 Request 对象提取数据时(例如,读取请求体),这些数据不会被 FastAPI 验证…\n\n[2] 标题：请求文件\n来源：web\n内容：则,这些参数会被当作查询参数或请求体(JSON)参数。\n文件将作为「表单数据」上传。\n如果把路径操作函数参数的类型声明为 bytes,FastAPI 会为你读取文件,并以 bytes 的形式接收其内容。\n请注意,这意味着整个内容会存储在内存中,适用于小型文件。\n不过,在很多情况下,使用 UploadFile 会更有优势。\n含 UploadFile 的文件参数¶\n将文件参数的类型声明为 UploadFile:\nfrom typing import Annotated\nfrom fastapi import FastAPI, File, UploadFile\napp = FastAPI()\n@ap…\n\n[3] 标题：请求文件\n来源：web\n内容：暴露了一个实际的 Python SpooledTemporaryFile 对象,你可以直接传给期望「file-like」对象的其他库。\nUploadFile¶\nUploadFile 的属性如下:\n- filename:上传的原始文件名字符串(str),例如 myimage.jpg。\n- content_type:内容类型(MIME 类型 / 媒体类型)的字符串(str),例如 image/jpeg。\n- file:SpooledTemporaryFile(一个 file-like 对象)。这是实际的 Python 文件对象,你可以直接传递给其他期望「file-like」对象的函数或库。\nUpl…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/advanced/using-request-directly/",
+          "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+          "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+          "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-params/"
+        ],
+        "refused": false,
+        "citation_precision": 0.0,
+        "citation_recall": 0.0,
+        "first_token_ms_p50": 494.0,
+        "total_ms_p50": 495.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2678,
+          "completion_tokens": 550,
+          "total_tokens": 3228,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-g2-022",
+      "question": "Depends() 的 use_cache 参数默认值是什么？把它设为 False 会怎样？",
+      "type": "detail",
+      "split": "test",
+      "answerable": true,
+      "gold_urls": [
+        "https://fastapi.tiangolo.com/zh/reference/dependencies/"
+      ],
+      "reference_answer": "use_cache 的默认值是 True：某个依赖在请求中第一次被调用后，后续再次需要时会复用其结果。把它设为 False 则禁用缓存，使同一请求中多次声明的该依赖被再次调用。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/advanced-dependencies/",
+        "https://fastapi.tiangolo.com/zh/advanced/advanced-dependencies/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/",
+        "https://fastapi.tiangolo.com/zh/tutorial/security/simple-oauth2/",
+        "https://fastapi.tiangolo.com/zh/tutorial/query-params-str-validations/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 300.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.7000526,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": 0.0,
+        "evidence_recall_at_5": 0.0,
+        "mrr": 0.0,
+        "ndcg_at_10": 0.0
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：高级依赖项\n来源：web\n内容：情况下,FastAPI 会使用这个 __call__ 来检查附加参数和子依赖,并且稍后会调用它,把返回值传递给你的路径操作函数中的参数。\n参数化实例¶\n现在,我们可以用 __init__ 声明实例的参数,用来“参数化”这个依赖项:\nfrom typing import Annotated\nfrom fastapi import Depends, FastAPI\napp = FastAPI()\nclass FixedContentQueryChecker:\ndef __init__(self, fixed_content: str):\nself.fixed_content = fixed_con…\n\n[2] 标题：高级依赖项\n来源：web\n内容：\"\"):\nif q:\nreturn self.fixed_content in q\nreturn False\nchecker = FixedContentQueryChecker(\"bar\")\n@app.get(\"/query-checker/\")\nasync def read_query_check(fixed_content_included: Annotated[bool, Depends(checker)]):\nreturn {\"fixed_content_in_query\": fixed_content_included}\n🤓 Other versions and variants\n…\n\n[3] 标题：查询参数模型\n来源：web\n内容：供两个字段。\n使用 | None 但不设置默认值时,该参数仍然是必需的。\n额外参数遵循模型的 extra 配置。被忽略的额外参数不会使模型被视为已提供。\nOpenAPI 会逐一列出这组参数的字段,并将它们标记为可选。\n你也可以声明可选的 header 参数模型和 cookie 参数模型。\n总结¶\n你可以使用 Pydantic 模型在 FastAPI 中声明查询参数。😎\n提示\n剧透警告:你也可以使用 Pydantic 模型来声明 cookie 和 headers,但你将在本教程的后面部分阅读到这部分内容。🤫\n\nfrom\n\ntyping\n\nimport\n\nAnnotated\n,\n\nLiteral\n…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/advanced/advanced-dependencies/",
+          "https://fastapi.tiangolo.com/zh/advanced/advanced-dependencies/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-param-models/",
+          "https://fastapi.tiangolo.com/zh/tutorial/security/simple-oauth2/",
+          "https://fastapi.tiangolo.com/zh/tutorial/query-params-str-validations/"
+        ],
+        "refused": false,
+        "citation_precision": 0.0,
+        "citation_recall": 0.0,
+        "first_token_ms_p50": 407.5,
+        "total_ms_p50": 415.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2754,
+          "completion_tokens": 485,
+          "total_tokens": 3239,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-neg-003",
+      "question": "FastAPI 如何对接 Kafka 做消息队列削峰？",
+      "type": "negative",
+      "split": "test",
+      "answerable": false,
+      "gold_urls": [],
+      "reference_answer": "根据现有资料无法确定。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/advanced/websockets/",
+        "https://fastapi.tiangolo.com/zh/tutorial/header-params/",
+        "https://fastapi.tiangolo.com/zh/tutorial/header-param-models/",
+        "https://fastapi.tiangolo.com/zh/advanced/templates/",
+        "https://fastapi.tiangolo.com/zh/tutorial/dependencies/global-dependencies/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 23.0,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.51919436,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": null,
+        "evidence_recall_at_5": null,
+        "mrr": null,
+        "ndcg_at_10": null
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：WebSockets\n来源：web\n内容：。\n等待消息并发送消息¶\n在您的 WebSocket 路由中,您可以使用 await 等待消息并发送消息。\nfrom fastapi import FastAPI, WebSocket\nfrom fastapi.responses import HTMLResponse\napp = FastAPI()\nhtml = \"\"\"\n\nChat\n\nWebSocket Chat\n\nSend\n\n\"\"\"\n@app.get(\"/\")\nasync def get():\nreturn HTMLResponse(html)\n@app.websocket(\"/ws\")\nasync def websocket_endpo…\n\n[2] 标题：Header 参数\n来源：web\n内容：_token: Annotated[list[str] | None, Header()] = None):\nreturn {\"X-Token values\": x_token}\n🤓 Other versions and variants\nTip\nPrefer to use the Annotated version if possible.\nfrom fastapi import FastAPI, Header\napp = FastAPI()\n@app.get(\"/items/\")\nasync def read_items(x_token: list[str] | None = Header…\n\n[3] 标题：Header 参数模型\n来源：web\n内容：parent\n:\n\nstr\n\n|\n\nNone\n\n=\n\nNone\n\nx_tag\n:\n\nlist\n[\nstr\n]\n\n=\n\n[]\n\n@app\n.\nget\n(\n\"/items/\"\n)\n\nasync\n\ndef\n\nread_items\n(\nheaders\n:\n\nAnnotated\n[\nCommonHeaders\n,\n\nHeader\n()]):\n\nreturn\n\nheaders\n\nfrom\n\nfastapi\n\nimport\n\nFastAPI\n,\n\nHeader\n\nfrom\n\npydantic\n\nimport\n\nBaseModel\n\napp\n\n=\n\nFastAPI\n()\n\nclass\n\nCommonHeade…",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/advanced/websockets/",
+          "https://fastapi.tiangolo.com/zh/tutorial/header-params/",
+          "https://fastapi.tiangolo.com/zh/tutorial/header-param-models/",
+          "https://fastapi.tiangolo.com/zh/advanced/templates/",
+          "https://fastapi.tiangolo.com/zh/tutorial/dependencies/global-dependencies/"
+        ],
+        "refused": false,
+        "citation_precision": 0.0,
+        "citation_recall": 0.0,
+        "first_token_ms_p50": 28.0,
+        "total_ms_p50": 31.0,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2312,
+          "completion_tokens": 335,
+          "total_tokens": 2647,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    },
+    {
+      "id": "q-neg-004",
+      "question": "FastAPI 的 gRPC 服务怎么定义 proto 文件？",
+      "type": "negative",
+      "split": "test",
+      "answerable": false,
+      "gold_urls": [],
+      "reference_answer": "根据现有资料无法确定。",
+      "retrieved_urls": [
+        "https://fastapi.tiangolo.com/zh/tutorial/background-tasks/",
+        "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+        "https://fastapi.tiangolo.com/zh/tutorial/frontend/",
+        "https://fastapi.tiangolo.com/zh/tutorial/handling-errors/",
+        "https://fastapi.tiangolo.com/zh/advanced/templates/"
+      ],
+      "retrieval": {
+        "latency_ms_p50": 33.5,
+        "embedding_model": "BAAI/bge-small-zh-v1.5",
+        "retrieval_mode": "hybrid",
+        "score_type": "rrf",
+        "best_dense_score": 0.63265884,
+        "keyword_hits": 50
+      },
+      "metrics": {
+        "recall_at_5": null,
+        "evidence_recall_at_5": null,
+        "mrr": null,
+        "ndcg_at_10": null
+      },
+      "chat": {
+        "answer": "模型暂不可用，以下是检索到的相关内容：\n\n[1] 标题：后台任务\n来源：web\n内容：后台任务¶\n你可以定义在返回响应后运行的后台任务。\n这对需要在请求之后执行的操作很有用,但客户端不必在接收响应之前等待操作完成。\n包括这些例子:\n- 执行操作后发送的电子邮件通知:\n- 由于连接到电子邮件服务器并发送电子邮件往往很“慢”(几秒钟),你可以立即返回响应并在后台发送电子邮件通知。\n- 处理数据:\n- 例如,假设你收到的文件必须经过一个缓慢的过程,你可以返回一个\"Accepted\"(HTTP 202)响应并在后台处理它。\n使用 BackgroundTasks¶\n首先导入 BackgroundTasks 并在 路径操作函数 中使用类型声明 BackgroundTasks 定义一个参数:…\n\n[2] 标题：请求文件\n来源：web\n内容：请求文件¶\n你可以使用 File 定义由客户端上传的文件。\n导入 File¶\n从 fastapi 导入 File 和 UploadFile:\nfrom typing import Annotated\nfrom fastapi import FastAPI, File, UploadFile\napp = FastAPI()\n@app.post(\"/files/\")\nasync def create_file(file: Annotated[bytes, File()]):\nreturn {\"file_size\": len(file)}\n@app.post(\"/uploadfile/\")\nasyn…\n\n[3] 标题：前端\n来源：web\n内容：。\n如果你的前端文件会稍后创建,例如在应用对象创建之后由单独的构建步骤创建,请设置 check_dir=False:\nfrom fastapi import FastAPI\napp = FastAPI()\napp.frontend(\"/\", directory=\"dist\", check_dir=False)\n使用 check_dir=False 时,FastAPI 不会在应用创建时检查目录。如果在处理请求时配置的目录仍然缺失,FastAPI 会在那时抛出错误。\n与 APIRouter 一起使用¶\n你也可以将前端文件添加到一个 APIRouter,并使用前缀包含它:\nfrom fastapi …",
+        "cited_urls": [
+          "https://fastapi.tiangolo.com/zh/tutorial/background-tasks/",
+          "https://fastapi.tiangolo.com/zh/tutorial/request-files/",
+          "https://fastapi.tiangolo.com/zh/tutorial/frontend/",
+          "https://fastapi.tiangolo.com/zh/tutorial/handling-errors/",
+          "https://fastapi.tiangolo.com/zh/advanced/templates/"
+        ],
+        "refused": false,
+        "citation_precision": 0.0,
+        "citation_recall": 0.0,
+        "first_token_ms_p50": 30.5,
+        "total_ms_p50": 32.5,
+        "cache_hit_runs": 0,
+        "degraded_runs": 0,
+        "grounded": true,
+        "model": "extractive",
+        "reason": null,
+        "invalid_citations": 0,
+        "usage": {
+          "prompt_tokens": 2682,
+          "completion_tokens": 529,
+          "total_tokens": 3211,
+          "estimated": true
+        },
+        "stream_error": null
+      }
+    }
+  ]
+}

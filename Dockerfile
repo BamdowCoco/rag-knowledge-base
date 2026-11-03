@@ -71,6 +71,8 @@ COPY crawler/requirements.txt ./crawler/requirements.txt
 RUN pip install --no-cache-dir -r crawler/requirements.txt
 COPY crawler/ ./crawler/
 COPY tests/ ./tests/
+# 评测包（指标纯函数 + YAML 配置）：test 镜像同时承载 compose 的 eval 服务
+COPY evals/ ./evals/
 # 测试会直接 import embedder.main 跑 index_once（用 hash provider，不需要 fastembed）
 COPY embedder/ ./embedder/
 

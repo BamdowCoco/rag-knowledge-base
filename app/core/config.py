@@ -144,6 +144,16 @@ class Settings(BaseSettings):
     retrieval_top_k: int = 5
     # 低于该分数的召回直接判为证据不足（0 = 不启用；阈值要用评测集校准，别拍脑袋）。
     retrieval_score_threshold: float = 0.0
+    # 默认检索模式：dense（只用向量）/ hybrid（向量 + MySQL FULLTEXT，RRF 融合）。
+    # 请求体可以按次覆盖，评测靠它做 A/B。
+    retrieval_mode: Literal["dense", "hybrid"] = "dense"
+    # hybrid 时每路各取多少候选，再融合取 top_k。候选越多召回越全，但关键词查询也越慢。
+    retrieval_candidate_k: int = 50
+    # RRF 的平滑常数：越小越看重头部排名，60 是常用默认值。
+    rrf_k: int = 60
+    # /metrics 里 rag_pipeline_pending_chunks 的刷新周期（秒）。all / ingest / rag 都会起循环，
+    # 只读查 MySQL；调小只是更实时，代价是多一次 count 查询。
+    metrics_refresh_seconds: int = 60
 
     # ---------- 派生 DSN（用 @property 现拼，不重复存字段） ----------
     @property

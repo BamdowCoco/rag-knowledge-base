@@ -1,7 +1,7 @@
 """
-检索服务：query embedding → Qdrant 向量检索 → MySQL 回表校验。
+检索服务：query embedding → 向量 / 关键词召回 → MySQL 回表校验。
 
-**MySQL 是真相，Qdrant 只是可重建的索引。** 这里的顺序固定成「先向量召回、再回表」，
+**MySQL 是真相，Qdrant 只是可重建的索引。** 这里的顺序固定成「先召回、再回表」，
 原因有两层：
 
 - 正文只存在 MySQL 里（Qdrant payload 不存正文，省空间也避免两份数据不一致）；
@@ -9,7 +9,14 @@
   「已作废但向量还没删」的点。回表时用 ``superseded_at IS NULL`` 过滤掉它们，
   于是「旧内容在撤回完成前仍然可检索」这个窗口被压缩到一次 SQL 之内。
 
-【模型版本过滤】检索条件里 **强制** 带上 ``embedding_model == 当前模型`` ：
+【两种检索模式】
+
+- ``dense``：只用向量检索，分数是余弦相似度；
+- ``hybrid``：向量 + MySQL FULLTEXT（ngram）各取一批候选，用 RRF 按排名融合
+  （见 ``app.services.fusion``）。关键词一路失败（索引缺失、SQL 异常）时只记
+  warning 并退回 dense —— 检索增强不能变成可用性单点。
+
+【模型版本过滤】两种模式都 **强制** 带上 ``embedding_model == 当前模型`` ：
 换 embedding 模型重嵌入期间，集合里会同时存在新旧模型的向量，两种向量空间不可比较，
 混进来只会让排序莫名其妙。
 """
@@ -17,7 +24,7 @@ import hashlib
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 
 from qdrant_client import AsyncQdrantClient, models
 from redis.asyncio import Redis
@@ -25,10 +32,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.exceptions import RetrievalUnavailableError
+from app.core.metrics import observe_retrieval, record_cache_hit
 from app.infra.qdrant_client import DENSE_VECTOR_NAME
-from app.repositories.chunk_repo import ChunkRepo
+from app.repositories.chunk_repo import ChunkRepo, ChunkView
 from app.schemas.qa import SearchFilters
 from app.services.cache_service import cache_get, cache_set
+from app.services.fusion import rrf_fuse
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +50,12 @@ _EMBED_CACHE_MAX_TTL = 600
 
 @dataclass
 class RetrievalHit:
-    """一条检索命中：分数来自 Qdrant，其余字段来自 MySQL 回表。"""
+    """
+    一条检索命中：正文与元数据来自 MySQL 回表。
+
+    ``score`` 的含义取决于模式：dense 下是余弦相似度；hybrid 下是 RRF 融合分。
+    两者不可跨模式比较，所以拒绝判断统一看 ``RetrievalOutcome.best_dense_score``。
+    """
 
     chunk_id: int
     document_id: int
@@ -53,6 +67,26 @@ class RetrievalHit:
     chunk_index: int
     language: str | None
     tags: list[str] | None
+
+
+@dataclass
+class RetrievalOutcome:
+    """
+    一次检索的完整结果（不只是 hits）。
+
+    :param hits: 回表后仍 active 的命中，按最终分数降序。
+    :param latency_ms: 整条读路径耗时（embedding + 召回 + 回表）。
+    :param mode: 实际走的模式；hybrid 的关键词一路失败时会退回 ``dense``。
+    :param best_dense_score: dense 候选第一条的余弦分；拒答阈值统一比较它
+        （RRF 分与余弦分不可比，不能让关键词噪声绕过拒答）。
+    :param keyword_hits: 关键词一路返回的条数（dense 模式恒为 0）。
+    """
+
+    hits: list[RetrievalHit]
+    latency_ms: int
+    mode: Literal["dense", "hybrid"]
+    best_dense_score: float
+    keyword_hits: int
 
 
 class RetrievalService:
@@ -88,56 +122,163 @@ class RetrievalService:
         query: str,
         top_k: int,
         filters: SearchFilters | None,
-    ) -> tuple[list[RetrievalHit], int]:
+        *,
+        mode: str | None = None,
+        use_cache: bool = True,
+    ) -> RetrievalOutcome:
         """
         检索与问题最相关的若干片段。
 
-        流程：query 向量（带缓存）→ Qdrant ``query_points``（带过滤）→ 按 id 回表
-        ``ChunkRepo.get_active_views`` → 按召回顺序组装命中。
+        dense 流程：query 向量（带缓存）→ Qdrant ``query_points``（带过滤）→ 按 id
+        回表 ``ChunkRepo.get_active_views`` → 按召回顺序组装命中。
 
-        **分数过滤不在这里做**：``RETRIEVAL_SCORE_THRESHOLD`` 的判定留给
+        hybrid 流程：dense 取 ``RETRIEVAL_CANDIDATE_K``、关键词取同量候选 →
+        ``rrf_fuse`` 融合取 ``top_k`` → 回表一次。关键词一路异常时退回 dense。
+
+        **分数阈值不在这里判**：``RETRIEVAL_SCORE_THRESHOLD`` 的判定留给
         ``AnswerService`` —— 检索接口只负责「返回候选」，问答应不应该拒答是它的决策。
 
         :param query: 用户问题。
         :param top_k: 最多返回多少条。
-        :param filters: 可选的 payload 过滤条件。
-        :return: ``(命中列表（分数降序）, 耗时毫秒)``；没有召回时返回 ``([], 耗时)``。
+        :param filters: 可选的 payload / SQL 过滤条件。
+        :param mode: 本次检索模式；``None`` 表示读 ``settings.retrieval_mode``。
+        :param use_cache: ``False`` 时不读写 query embedding 缓存（评测要可复现）。
+        :return: 命中列表、耗时、实际模式与诊断字段。
         :raises RetrievalUnavailableError: query embedding 或 Qdrant 调用失败。
         """
         started = time.perf_counter()
-        vector = await self._embed_query(query)
+        requested = mode or settings.retrieval_mode
+        resolved: Literal["dense", "hybrid"] = (
+            "hybrid" if requested == "hybrid" else "dense"
+        )
 
+        vector = await self._embed_query(query, use_cache=use_cache)
+
+        if resolved == "dense":
+            dense_ids, dense_scores = await self._dense_candidates(vector, top_k, filters)
+            views = await ChunkRepo(self.db).get_active_views(dense_ids)
+            hits = self._build_hits(views, dense_scores)
+            return self._observed(
+                RetrievalOutcome(
+                    hits=hits,
+                    latency_ms=int((time.perf_counter() - started) * 1000),
+                    mode="dense",
+                    # 回表后第一条 active 命中的分数；没有命中则为 0
+                    best_dense_score=hits[0].score if hits else 0.0,
+                    keyword_hits=0,
+                )
+            )
+
+        # hybrid：候选数至少覆盖 top_k（配置调小时也不会返回不足条数）
+        candidate_k = max(settings.retrieval_candidate_k, top_k)
+        dense_ids, dense_scores = await self._dense_candidates(vector, candidate_k, filters)
+        # 拒答阈值以 dense 原始候选的第一条为准（RRF 分不可比）
+        best_dense_score = dense_scores[dense_ids[0]] if dense_ids else 0.0
+
+        try:
+            keyword_pairs = await ChunkRepo(self.db).keyword_search(
+                query,
+                candidate_k,
+                embedding_model=self.embedding_model,
+                source=filters.source if filters else None,
+                language=filters.language if filters else None,
+                tags=filters.tags if filters else None,
+                document_ids=filters.document_ids if filters else None,
+            )
+        except Exception as exc:  # noqa: BLE001 - 索引缺失等：退回 dense，不打挂检索
+            logger.warning("关键词检索失败，本次退回 dense：%s", exc)
+            views = await ChunkRepo(self.db).get_active_views(dense_ids[:top_k])
+            hits = self._build_hits(views, dense_scores)
+            return self._observed(
+                RetrievalOutcome(
+                    hits=hits,
+                    latency_ms=int((time.perf_counter() - started) * 1000),
+                    mode="dense",
+                    best_dense_score=hits[0].score if hits else 0.0,
+                    keyword_hits=0,
+                )
+            )
+
+        keyword_ids = [chunk_id for chunk_id, _ in keyword_pairs]
+        fused = rrf_fuse([dense_ids, keyword_ids], k=settings.rrf_k, limit=top_k)
+        fused_scores = dict(fused)
+        views = await ChunkRepo(self.db).get_active_views(
+            [chunk_id for chunk_id, _ in fused]
+        )
+        return self._observed(
+            RetrievalOutcome(
+                hits=self._build_hits(views, fused_scores),
+                latency_ms=int((time.perf_counter() - started) * 1000),
+                mode="hybrid",
+                best_dense_score=best_dense_score,
+                keyword_hits=len(keyword_ids),
+            )
+        )
+
+    @staticmethod
+    def _observed(outcome: RetrievalOutcome) -> RetrievalOutcome:
+        """
+        记录本次检索的指标后原样返回结果。
+
+        埋点只做可观测：即使耗时或条数为 0 也照常记录，不影响调用方拿到的数据。
+
+        :param outcome: 检索结果。
+        :return: 传入的同一个 ``RetrievalOutcome``。
+        """
+        observe_retrieval(
+            outcome.mode, outcome.latency_ms / 1000, len(outcome.hits)
+        )
+        return outcome
+
+    async def _dense_candidates(
+        self,
+        vector: list[float],
+        limit: int,
+        filters: SearchFilters | None,
+    ) -> tuple[list[int], dict[int, float]]:
+        """
+        向量召回，返回去重后的 id 顺序与 id → 分数映射。
+
+        :param vector: query 向量。
+        :param limit: Qdrant 返回条数上限。
+        :param filters: 业务过滤条件。
+        :return: ``(按分数降序的 chunk id, id → 余弦分)``。
+        :raises RetrievalUnavailableError: Qdrant 不可用。
+        """
         try:
             response = await self.qdrant.query_points(
                 collection_name=settings.qdrant_collection,
                 query=vector,
                 using=DENSE_VECTOR_NAME,
                 query_filter=self._build_filter(filters),
-                limit=top_k,
+                limit=limit,
                 with_payload=True,
             )
         except Exception as exc:  # noqa: BLE001 - 统一翻成 503 给调用方重试
             logger.warning("Qdrant 检索失败：%s", exc)
             raise RetrievalUnavailableError() from exc
 
-        points = list(response.points)
-        if not points:
-            return [], int((time.perf_counter() - started) * 1000)
-
-        # 保持 Qdrant 的分数顺序；回表只用来补正文与过滤已作废的块
-        scores: dict[int, float] = {}
         ordered_ids: list[int] = []
-        for point in points:
+        scores: dict[int, float] = {}
+        for point in response.points:
             chunk_id = int(point.id)
             if chunk_id in scores:
                 continue
             scores[chunk_id] = float(point.score)
             ordered_ids.append(chunk_id)
+        return ordered_ids, scores
 
-        # MySQL 是真相：删除是异步的，Qdrant 里可能还有已作废的点，回表时一并过滤
-        views = await ChunkRepo(self.db).get_active_views(ordered_ids)
+    def _build_hits(
+        self, views: list[ChunkView], scores: dict[int, float]
+    ) -> list[RetrievalHit]:
+        """
+        把回表结果与分数拼成命中列表，保持 ``views`` 的顺序。
 
-        hits = [
+        :param views: 已过滤 active 的块（顺序与召回 / 融合顺序一致）。
+        :param scores: chunk id → 分数（余弦或 RRF）。
+        :return: 命中列表。
+        """
+        return [
             RetrievalHit(
                 chunk_id=view.id,
                 document_id=view.document_id,
@@ -152,10 +293,8 @@ class RetrievalService:
             )
             for view in views
         ]
-        # 耗时口径：query embedding + Qdrant 召回 + MySQL 回表（整条读路径）
-        return hits, int((time.perf_counter() - started) * 1000)
 
-    async def _embed_query(self, query: str) -> list[float]:
+    async def _embed_query(self, query: str, *, use_cache: bool = True) -> list[float]:
         """
         把问题编码成向量；开启缓存时先查 Redis。
 
@@ -163,6 +302,7 @@ class RetrievalService:
         缓存读写失败一律 **吞掉并继续** —— 缓存是加速层，不能成为检索的可用性单点。
 
         :param query: 用户问题。
+        :param use_cache: ``False`` 时既不读也不写缓存（评测要求结果可复现）。
         :return: 向量。
         :raises RetrievalUnavailableError: embedding 调用失败。
         """
@@ -170,7 +310,7 @@ class RetrievalService:
             f"{_EMBED_CACHE_PREFIX}:{self.embedding_model}:"
             f"{hashlib.sha256(query.encode('utf-8')).hexdigest()}"
         )
-        use_cache = bool(self.redis) and settings.qa_cache_enabled
+        use_cache = use_cache and bool(self.redis) and settings.qa_cache_enabled
 
         if use_cache:
             try:
@@ -179,6 +319,8 @@ class RetrievalService:
                 logger.warning("读取 query embedding 缓存失败：%s", exc)
             else:
                 if isinstance(cached, list) and cached:
+                    # 只有真正拿到可用向量才算命中；读到空值仍走重新编码
+                    record_cache_hit("embedding")
                     return cached
 
         try:

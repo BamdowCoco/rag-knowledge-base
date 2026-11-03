@@ -41,20 +41,30 @@ _FEEDBACK_KEY = "qa:feedback"
 _FEEDBACK_MAX_ITEMS = 1000
 
 
-@router.post("/search", response_model=SearchResponse, summary="向量检索")
+@router.post("/search", response_model=SearchResponse, summary="向量 / 混合检索")
 async def search_chunks(
     payload: SearchRequest,
     service: RetrievalService = Depends(get_retrieval_service),
 ) -> SearchResponse:
     """
-    按语义检索分块。
+    按语义（dense）或语义 + 关键词（hybrid，RRF 融合）检索分块。
 
-    :param payload: 查询文本、条数上限与过滤条件。
+    ``payload.score_threshold`` **在这里不生效** ：检索接口只返回候选，
+    拒答阈值由 ``/chat/stream`` 使用（``AnswerService`` 统一比较 ``best_dense_score``）。
+    字段保留是为了让两个接口的请求体形状一致，评测脚本不必按路由区别对待。
+
+    :param payload: 查询文本、条数上限、过滤条件与按次覆盖项。
     :param service: 检索服务。
-    :return: 命中片段（分数降序）、检索耗时与本次使用的 embedding 模型。
+    :return: 命中片段（最终分数降序）、耗时、embedding 模型与检索诊断字段。
     :raises RetrievalUnavailableError: Qdrant / embedding 不可用（映射为 503）。
     """
-    hits, latency_ms = await service.search(payload.query, payload.top_k, payload.filters)
+    outcome = await service.search(
+        payload.query,
+        payload.top_k,
+        payload.filters,
+        mode=payload.retrieval_mode,
+        use_cache=payload.use_cache,
+    )
     return SearchResponse(
         results=[
             RetrievalResult(
@@ -69,10 +79,14 @@ async def search_chunks(
                 language=hit.language,
                 tags=hit.tags,
             )
-            for hit in hits
+            for hit in outcome.hits
         ],
-        latency_ms=latency_ms,
+        latency_ms=outcome.latency_ms,
         embedding_model=service.embedding_model,
+        retrieval_mode=outcome.mode,
+        score_type="rrf" if outcome.mode == "hybrid" else "cosine",
+        best_dense_score=outcome.best_dense_score,
+        keyword_hits=outcome.keyword_hits,
     )
 
 
@@ -88,12 +102,13 @@ async def chat_stream(
 
     - ``citations``：可引用的资料列表 ``{"citations": [...]}``；
     - ``token``：回答文本增量 ``{"text": "..."}``；
-    - ``done``：统计与标记（``model`` / ``degraded`` / ``grounded`` / ``cache_hit`` 等）；
+    - ``done``：统计与标记（``model`` / ``degraded`` / ``grounded`` / ``cache_hit`` /
+      ``retrieval_mode`` / ``score_type`` / ``best_dense_score`` / ``keyword_hits`` 等）；
     - ``error``：只在检索失败或生成中途失败时出现。
 
     无检索结果时不会调用 LLM，直接返回固定拒答并把 ``done.reason`` 置为 ``no_context``。
 
-    :param payload: 问题、条数上限与过滤条件。
+    :param payload: 问题、条数上限、过滤条件与按次覆盖项。
     :param service: 问答服务。
     :return: ``text/event-stream`` 流式响应。
     """
@@ -104,7 +119,14 @@ async def chat_stream(
 
         :yield: 以空行结尾的 SSE 消息。
         """
-        async for event in service.stream(payload.question, payload.top_k, payload.filters):
+        async for event in service.stream(
+            payload.question,
+            payload.top_k,
+            payload.filters,
+            retrieval_mode=payload.retrieval_mode,
+            use_cache=payload.use_cache,
+            score_threshold=payload.score_threshold,
+        ):
             yield format_sse(event.event, event.data)
 
     return StreamingResponse(
