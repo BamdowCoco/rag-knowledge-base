@@ -148,12 +148,26 @@ async def run_once(
         await state.add_stat("errors")
         return await state.stats()
 
-    outcomes = await asyncio.gather(
-        *[
-            _process_url(url, cfg=cfg, client=client, state=state, limiter=limiter)
-            for url in urls
-        ]
-    )
+    # 【为什么要这个信号量】HTTP 并发已经由 ``HostRateLimiter`` 限制成 2，但每个页面任务
+    # 还要做多次 Redis 状态读写。直接 gather 152 个任务会同时占用 152 条 Redis 连接，
+    # 超过 redis-py 默认的 100 连接池上限（P1 只抓 5 页时没暴露）。这里把“同时在处理的
+    # 页面数”也限制住：HTTP 仍然按限速器稀疏发起，状态写入不会把连接池打满。
+    process_limit = max(8, cfg.concurrency * 4)
+    process_semaphore = asyncio.Semaphore(process_limit)
+
+    async def _bounded(url: str) -> _UrlOutcome | None:
+        """
+        在页面处理信号量内抓取一个 URL。
+
+        :param url: 归一化 URL。
+        :return: ``_process_url`` 的结果。
+        """
+        async with process_semaphore:
+            return await _process_url(
+                url, cfg=cfg, client=client, state=state, limiter=limiter
+            )
+
+    outcomes = await asyncio.gather(*[_bounded(url) for url in urls])
 
     present: set[str] = set()
     pending: list[_PendingPush] = []
