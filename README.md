@@ -97,6 +97,23 @@ bash scripts/mysql.sh "select count(*) from document_clean;"
 docker compose --profile test run --rm test
 ```
 
+测试已按区域分包，只改一块时跑对应包即可（完整地图见 `tests/README.md`）：
+
+```text
+docker compose --profile test run --rm test pytest -q tests/unit
+docker compose --profile test run --rm test pytest -q tests/ingest
+docker compose --profile test run --rm test pytest -q tests/tasks
+docker compose --profile test run --rm test pytest -q tests/rag
+docker compose --profile test run --rm test pytest -q tests/llm
+docker compose --profile test run --rm test pytest -q tests/api
+docker compose --profile test run --rm test pytest -q tests/enrich
+docker compose --profile test run --rm test pytest -q tests/infra
+docker compose --profile test run --rm test pytest -q tests/crawler
+```
+
+> `tests/unit` 不会启动 MySQL/Qdrant；`tests/infra` / `tests/crawler` 只需要 Redis。
+> 改 `app/` 代码后要重建 test 镜像；只改测试文件则直接跑。
+
 > 更细的逐步验收（每一步"应该看到什么"）、常见症状、Windows 上的 shell 差异，
 > 都在 `docs/README-旧版.md`（本地留存，未入库）。
 
