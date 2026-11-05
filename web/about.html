@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f5f1" />
+    <meta
+      name="description"
+      content="rag-ingest-pipeline 的架构、技术栈与诚实边界：入库、爬虫、向量化、检索与流式问答。"
+    />
+    <title>架构与边界 · RAG 控制台</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="css/tokens.css?v=20261104" />
+    <link rel="stylesheet" href="css/base.css?v=20261104" />
+    <link rel="stylesheet" href="css/components.css?v=20261104" />
+    <link rel="stylesheet" href="css/about.css?v=20261104" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+
+    <header class="site-header">
+      <div class="site-header__inner">
+        <a class="brand" href="index.html">
+          <svg class="brand__mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <rect
+              x="3.5"
+              y="3.5"
+              width="25"
+              height="25"
+              rx="4.5"
+              stroke="currentColor"
+              stroke-width="1.5"
+            />
+            <path
+              d="M9.5 10.5h13M9.5 15.5h13M9.5 20.5h7"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+            <circle cx="24" cy="22" r="2.6" fill="currentColor" />
+          </svg>
+          <span class="brand__text">
+            <span class="brand__name">RAG 知识库控制台</span>
+            <span class="brand__sub">rag-ingest-pipeline</span>
+          </span>
+        </a>
+        <nav class="site-nav" aria-label="主导航">
+          <a href="index.html">问答</a>
+          <a href="admin.html">运维</a>
+          <a href="about.html" aria-current="page">关于</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="about-layout">
+      <header class="about-hero">
+        <p class="eyebrow">About · architecture · boundaries</p>
+        <h1 class="about-title">一条可本地复现的 RAG 入库与问答链路</h1>
+        <p class="about-lede">
+          从真实上游抓取文档，经标准化、分块与向量化写入 Qdrant，再用检索到的片段生成带引用的流式回答。
+          前端刻意保持零构建，把复杂度留在后端与 AI 链路。
+        </p>
+      </header>
+
+      <section class="about-section" aria-labelledby="overview-title">
+        <p class="about-section__label">Overview</p>
+        <div class="about-section__body">
+          <h2 class="about-section__title" id="overview-title">是什么</h2>
+          <p>
+            这是一个企业知识库入库与问答的完整实现：同步器或爬虫提交原始文档，服务端按
+            <span class="code-inline">source + external_id</span>
+            判重与更新，分块后由独立 embedder 写入向量库；问答侧先检索、再回表取正文，最后把上下文交给模型流式生成。
+          </p>
+          <p>
+            演示页只做展示，不在浏览器里实现 RAG 逻辑。聊天页与静态资源由
+            <span class="code-inline">rag-api</span>
+            同源提供；运维页读取
+            <span class="code-inline">api</span>
+            的只读统计接口。
+          </p>
+        </div>
+      </section>
+
+      <section class="about-section" aria-labelledby="arch-title">
+        <p class="about-section__label">Architecture</p>
+        <div class="about-section__body">
+          <h2 class="about-section__title" id="arch-title">角色分离的三条链路</h2>
+          <p>
+            <span class="code-inline">api</span> 只负责摄入与统计，
+            <span class="code-inline">rag-api</span>
+            只负责检索与问答。这样读侧不持有写权限，部署时也更接近生产上的读写分离。
+          </p>
+
+          <div class="arch">
+            <div class="arch-lane">
+              <div class="arch-lane__head">
+                <h3 class="arch-lane__title">读 · 问答</h3>
+                <span class="arch-lane__hint">rag-api :8001</span>
+              </div>
+              <div class="flow">
+                <div class="flow__node">
+                  <span class="flow__node-title">浏览器</span>
+                  <span class="flow__node-role">web/ 聊天页</span>
+                </div>
+                <span class="flow__arrow" aria-hidden="true">→</span>
+                <div class="flow__node flow__node--accent">
+                  <span class="flow__node-title">rag-api</span>
+                  <span class="flow__node-role">/chat/stream · SSE</span>
+                </div>
+                <span class="flow__arrow" aria-hidden="true">→</span>
+                <div class="flow__node flow__node--store">
+                  <span class="flow__node-title">Qdrant</span>
+                  <span class="flow__node-role">向量召回 top-k</span>
+                </div>
+                <span class="flow__arrow" aria-hidden="true">→</span>
+                <div class="flow__node flow__node--store">
+                  <span class="flow__node-title">MySQL</span>
+                  <span class="flow__node-role">回表取正文</span>
+                </div>
+                <span class="flow__arrow" aria-hidden="true">→</span>
+                <div class="flow__node">
+                  <span class="flow__node-title">LLM</span>
+                  <span class="flow__node-role">Ollama / extractive</span>
+                </div>
+              </div>
+              <p class="arch-note">
+                citations 先到，token 逐段推送，done 携带延迟、token 用量与降级标记。
+              </p>
+            </div>
+
+            <div class="arch-lane">
+              <div class="arch-lane__head">
+                <h3 class="arch-lane__title">写 · 入库与向量化</h3>
+                <span class="arch-lane__hint">api :8000</span>
+              </div>
+              <div class="flow">
+                <div class="flow__node">
+                  <span class="flow__node-title">crawler</span>
+                  <span class="flow__node-role">sitemap 增量</span>
+                </div>
+                <span class="flow__arrow" aria-hidden="true">→</span>
+                <div class="flow__node flow__node--accent">
+                  <span class="flow__node-title">api</span>
+                  <span class="flow__node-role">/documents · 判重</span>
+                </div>
+                <span class="flow__arrow" aria-hidden="true">→</span>
+                <div class="flow__node flow__node--store">
+                  <span class="flow__node-title">MySQL / Redis</span>
+                  <span class="flow__node-role">文档 / 队列与缓存</span>
+                </div>
+                <span class="flow__arrow" aria-hidden="true">→</span>
+                <div class="flow__node">
+                  <span class="flow__node-title">embedder</span>
+                  <span class="flow__node-role">消费 pending chunk</span>
+                </div>
+                <span class="flow__arrow" aria-hidden="true">→</span>
+                <div class="flow__node flow__node--store">
+                  <span class="flow__node-title">Qdrant</span>
+                  <span class="flow__node-role">document_chunks_v1</span>
+                </div>
+              </div>
+              <p class="arch-note">
+                重复与更新都按身份处理：同 external_id 内容未变则跳过，变了则更新并重建向量。
+              </p>
+            </div>
+
+            <div class="arch-lane">
+              <div class="arch-lane__head">
+                <h3 class="arch-lane__title">看 · 运维</h3>
+                <span class="arch-lane__hint">只读</span>
+              </div>
+              <div class="flow">
+                <div class="flow__node">
+                  <span class="flow__node-title">admin.html</span>
+                  <span class="flow__node-role">每 5 秒轮询</span>
+                </div>
+                <span class="flow__arrow" aria-hidden="true">→</span>
+                <div class="flow__node flow__node--accent">
+                  <span class="flow__node-title">api</span>
+                  <span class="flow__node-role">/documents/stats</span>
+                </div>
+                <span class="flow__arrow" aria-hidden="true">→</span>
+                <div class="flow__node flow__node--store">
+                  <span class="flow__node-title">MySQL / Redis</span>
+                  <span class="flow__node-role">计数、状态、crawl:*</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="about-section" aria-labelledby="stack-title">
+        <p class="about-section__label">Stack</p>
+        <div class="about-section__body">
+          <h2 class="about-section__title" id="stack-title">技术栈</h2>
+          <dl class="stack-grid">
+            <div class="stack-item">
+              <dt>API</dt>
+              <dd>FastAPI · Pydantic · SQLAlchemy async · Alembic</dd>
+            </div>
+            <div class="stack-item">
+              <dt>存储</dt>
+              <dd>MySQL 8（文档与分块）· Redis 7（队列状态、缓存、爬虫计数）· Qdrant（向量）</dd>
+            </div>
+            <div class="stack-item">
+              <dt>向量化</dt>
+              <dd>fastembed + BAAI/bge-small-zh-v1.5，独立 embedder 服务消费 pending chunk</dd>
+            </div>
+            <div class="stack-item">
+              <dt>生成</dt>
+              <dd>OpenAI 兼容接口（本机 Ollama qwen2.5:3b-instruct）；失败降级 extractive</dd>
+            </div>
+            <div class="stack-item">
+              <dt>爬虫</dt>
+              <dd>sitemap 增量、ETag / Last-Modified 校验、删除信号；遵守 robots 与限速</dd>
+            </div>
+            <div class="stack-item">
+              <dt>检索</dt>
+              <dd>dense 默认；hybrid 可选、默认关闭（当前评测未见稳定召回提升）</dd>
+            </div>
+            <div class="stack-item">
+              <dt>前端</dt>
+              <dd>原生 ES modules + CSS 变量，零构建、无 CDN、无外部字体</dd>
+            </div>
+            <div class="stack-item">
+              <dt>评测</dt>
+              <dd>recall@k、MRR、nDCG、引用精确率/召回率、拒答指标与延迟分位数</dd>
+            </div>
+            <div class="stack-item">
+              <dt>部署</dt>
+              <dd>Docker Compose；api / rag-api 角色分离，静态页由 rag-api 同源挂载</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="about-section" aria-labelledby="boundary-title">
+        <p class="about-section__label">Boundaries</p>
+        <div class="about-section__body">
+          <h2 class="about-section__title" id="boundary-title">诚实边界</h2>
+          <ul class="boundary-list">
+            <li>
+              <strong>模型质量有限。</strong>
+              本机 3B 小模型可能答得不完整；没有 Ollama 时降级为 extractive 片段拼接，仍可演示链路，但不是完整生成。
+              <span class="code-inline">done.degraded</span> 会明确标记。
+            </li>
+            <li>
+              <strong>单轮问答。</strong>
+              服务端不保存多轮上下文，<span class="code-inline">session_id</span> 仅回显给前端做会话关联。
+            </li>
+            <li>
+              <strong>引用不等于逐句支撑。</strong>
+              后端会校验越界引用编号，但无法保证每句话都被引用支撑；引用只代表本次检索到的资料。
+            </li>
+            <li>
+              <strong>没有鉴权与限流。</strong>
+              运维页只在本机使用。公网演示需要 Basic Auth、限流和只读网关，这些尚未接入。
+            </li>
+            <li>
+              <strong>公网部署未做。</strong>
+              当前只验证本地 Docker Compose；VPS、Caddy TLS、Cloudflare Tunnel 仍属于未完成的部署轨道。
+            </li>
+            <li>
+              <strong>评测集规模有限。</strong>
+              指标用于回归对比，不代表生产语料上的绝对质量；hybrid 的收益仍需更大评测集验证。
+            </li>
+            <li>
+              <strong>Prompt injection 不能完全防住。</strong>
+              当前用分隔符与指令层级降低风险；内容审核、权限隔离与工具隔离超出本项目范围。
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="about-section" aria-labelledby="repo-title">
+        <p class="about-section__label">Repository</p>
+        <div class="about-section__body">
+          <h2 class="about-section__title" id="repo-title">仓库</h2>
+          <p>代码、评测脚本与运行说明都在 GitHub；本演示页的接口行为以仓库当前分支为准。</p>
+          <div class="repo-card">
+            <div class="repo-card__text">
+              <span class="repo-card__name">BamdowCoco/rag-ingest-pipeline</span>
+              <span class="repo-card__desc">入库、爬虫、向量化、检索与流式问答</span>
+            </div>
+            <a
+              class="btn btn--primary"
+              href="https://github.com/BamdowCoco/rag-ingest-pipeline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              打开 GitHub
+              <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-footer__inner">
+        <span>rag-ingest-pipeline · 本地演示 · 不伪造公网链接与截图</span>
+        <span><a href="index.html">返回问答</a></span>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,113 @@
+/* ==========================================================================
+   tokens.css — 设计变量（颜色、字体、间距、圆角、阴影、动效）
+   主题：Paper Ledger · 技术文档控制台
+   - 单一强调色：深青绿（accent）；琥珀只作警告语义，不参与装饰
+   - 暖纸底 + 深墨字；所有颜色必须从这里取，页面样式不写裸色值
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* ---- 底色与表面 ------------------------------------------------------ */
+  --color-ground: #f5f5f1;
+  --color-surface: #ffffff;
+  --color-sunken: #edede7;
+  --color-inset: #fafaf6;
+  --color-overlay: rgba(28, 32, 30, 0.38);
+
+  /* ---- 文字 ------------------------------------------------------------ */
+  --color-ink: #1c201e;
+  --color-ink-soft: #414844;
+  --color-ink-muted: #545c56;
+  --color-ink-faint: #667069;
+  --color-ink-inverse: #f7f8f4;
+
+  /* ---- 分隔线 ---------------------------------------------------------- */
+  --color-line: #dcdfd7;
+  --color-line-soft: #e8eae4;
+  --color-line-strong: #c3c8be;
+
+  /* ---- 强调色（青绿） -------------------------------------------------- */
+  --color-accent: #0d6b5d;
+  --color-accent-hover: #0a584c;
+  --color-accent-strong: #06473d;
+  --color-accent-soft: #e3f1ed;
+  --color-accent-line: #a9d3c9;
+  --color-accent-tint: #f1f8f6;
+
+  /* ---- 语义色 ---------------------------------------------------------- */
+  --color-warn: #8a520b;
+  --color-warn-soft: #fbf1dd;
+  --color-warn-line: #e6c893;
+  --color-danger: #9b2f29;
+  --color-danger-soft: #fbeae8;
+  --color-danger-line: #e8b7b2;
+  --color-ok: #2c6b45;
+  --color-ok-soft: #e6f2e9;
+  --color-ok-line: #b7d8bf;
+  --color-neutral-soft: #efefe9;
+  --color-neutral-line: #d6d8d0;
+
+  /* ---- 字体 ------------------------------------------------------------ */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei",
+    "PingFang SC", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "Cascadia Mono", "SFMono-Regular",
+    Consolas, "Liberation Mono", Menlo, monospace;
+
+  /* 字号阶梯（16px 基准） */
+  --text-2xs: 0.6875rem;  /* 11px — 微标签 */
+  --text-xs: 0.75rem;     /* 12px — 元信息 */
+  --text-sm: 0.875rem;    /* 14px — 辅助 */
+  --text-base: 1rem;      /* 16px — 正文 */
+  --text-lg: 1.125rem;    /* 18px — 小标题 */
+  --text-xl: 1.375rem;    /* 22px — 区块标题 */
+  --text-2xl: 1.75rem;    /* 28px — 页面标题 */
+  --text-3xl: 2.25rem;    /* 36px — 空态主标题 */
+
+  /* 行高 */
+  --leading-tight: 1.2;
+  --leading-snug: 1.4;
+  --leading-normal: 1.65;
+  --leading-relaxed: 1.8;
+
+  /* ---- 间距（4px 基准） ------------------------------------------------ */
+  --space-1: 0.25rem;   /* 4 */
+  --space-2: 0.5rem;    /* 8 */
+  --space-3: 0.75rem;   /* 12 */
+  --space-4: 1rem;      /* 16 */
+  --space-5: 1.5rem;    /* 24 */
+  --space-6: 2rem;      /* 32 */
+  --space-7: 3rem;      /* 48 */
+  --space-8: 4rem;      /* 64 */
+
+  /* ---- 圆角 ------------------------------------------------------------ */
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-round: 999px;
+
+  /* ---- 阴影（克制：卡片只留 1px 级别的“纸感”） ------------------------- */
+  --shadow-card: 0 1px 2px rgba(28, 32, 30, 0.05);
+  --shadow-raise: 0 4px 16px rgba(28, 32, 30, 0.08);
+
+  /* ---- 布局 ------------------------------------------------------------ */
+  --content-max: 1280px;
+  --chat-max: 860px;
+  --header-height: 60px;
+  --page-pad: 1.5rem;
+  --rail-width: 280px;
+
+  /* ---- 焦点与动效 ------------------------------------------------------ */
+  --focus-ring: 0 0 0 3px rgba(13, 107, 93, 0.22);
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+@media (max-width: 640px) {
+  :root {
+    --page-pad: 1rem;
+    --header-height: 56px;
+  }
+}

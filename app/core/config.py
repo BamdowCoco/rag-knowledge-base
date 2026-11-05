@@ -90,6 +90,14 @@ class Settings(BaseSettings):
     # rag = 只读（检索 / 问答），不跑迁移、不起后台循环。
     app_role: Literal["all", "ingest", "rag"] = "all"
 
+    # ---------- CORS（演示前端跨源） ----------
+    # 运维页由 rag-api 的静态页提供（:8001），却要调 api（:8000）的统计接口 ——
+    # 两个来源不同，必须走白名单。逗号分隔；**不要写成 ``*``** ，白名单就是用来收口的。
+    cors_origins: str = (
+        "http://localhost:8000,http://localhost:8001,"
+        "http://127.0.0.1:8000,http://127.0.0.1:8001"
+    )
+
     # ---------- embedding（P0：真实下游） ----------
     # provider 决定向量从哪来：hash（测试桩，不出网）/ fastembed（本地 ONNX）/
     # openai_compat（OpenAI 兼容的向量端点）。用 Literal 让写错值在启动时就暴露。
@@ -178,6 +186,15 @@ class Settings(BaseSettings):
         :return: ``redis://host:port/db`` 形式的连接串。
         """
         return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        """
+        把逗号分隔的 CORS 白名单拆成列表。
+
+        :return: 去掉首尾空白、丢掉空项之后的来源列表（顺序不变）。
+        """
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
 
 # 模块级单例：全局共享一份

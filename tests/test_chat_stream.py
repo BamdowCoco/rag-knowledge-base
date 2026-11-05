@@ -96,6 +96,8 @@ async def test_chat_stream_emits_citations_tokens_done(client, make_doc):
     answer = "".join(tokens)
     assert answer.strip()
     assert "[1]" in answer                     # extractive 兜底会带编号引用
+    assert "检索片段模式" in answer             # 主动 extractive 是演示模式，不是故障
+    assert "模型暂不可用" not in answer
 
     assert events[-1][0] == "done"
     done = _done(events)
@@ -162,6 +164,7 @@ async def test_llm_failure_degrades_to_extractive(client, make_doc, monkeypatch)
     answer = "".join(data["text"] for name, data in events if name == "token")
     assert answer.strip()
     assert "[1]" in answer                     # 降级答案来自 extractive
+    assert "模型暂不可用" in answer             # LLM 失败兜底才用这句
 
     done = _done(events)
     assert done["degraded"] is True

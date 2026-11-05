@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f5f1" />
+    <meta
+      name="description"
+      content="基于检索增强生成的本地知识库问答演示：流式回答、引用来源、来源与语言筛选。"
+    />
+    <title>知识库问答 · RAG 控制台</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="css/tokens.css?v=20261104" />
+    <link rel="stylesheet" href="css/base.css?v=20261104" />
+    <link rel="stylesheet" href="css/components.css?v=20261104" />
+    <link rel="stylesheet" href="css/chat.css?v=20261104" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+
+    <header class="site-header">
+      <div class="site-header__inner">
+        <a class="brand" href="index.html">
+          <svg class="brand__mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <rect
+              x="3.5"
+              y="3.5"
+              width="25"
+              height="25"
+              rx="4.5"
+              stroke="currentColor"
+              stroke-width="1.5"
+            />
+            <path
+              d="M9.5 10.5h13M9.5 15.5h13M9.5 20.5h7"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+            <circle cx="24" cy="22" r="2.6" fill="currentColor" />
+          </svg>
+          <span class="brand__text">
+            <span class="brand__name">RAG 知识库控制台</span>
+            <span class="brand__sub">rag-ingest-pipeline</span>
+          </span>
+        </a>
+        <nav class="site-nav" aria-label="主导航">
+          <a href="index.html" aria-current="page">问答</a>
+          <a href="admin.html">运维</a>
+          <a href="about.html">关于</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="chat-layout">
+      <div class="chat-main">
+        <div id="error-slot" class="error-slot"></div>
+
+        <div class="filter-bar" role="group" aria-label="检索筛选">
+          <div class="field field--source">
+            <label class="label" for="filter-source">来源</label>
+            <select class="select" id="filter-source" name="source">
+              <option value="all">全部来源</option>
+              <option value="web">web（FastAPI 文档）</option>
+              <option value="feishu">feishu（模拟）</option>
+              <option value="confluence">confluence（模拟）</option>
+              <option value="yuque">yuque（模拟）</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="label" for="filter-language">语言</label>
+            <select class="select" id="filter-language" name="language">
+              <option value="all">全部</option>
+              <option value="zh">中文 zh</option>
+              <option value="en">英文 en</option>
+            </select>
+          </div>
+          <div class="field field--topk">
+            <label class="label" for="filter-topk">召回数</label>
+            <select class="select" id="filter-topk" name="top_k">
+              <option value="3">3</option>
+              <option value="5" selected>5</option>
+              <option value="10">10</option>
+            </select>
+          </div>
+          <div class="filter-bar__actions">
+            <button class="btn btn--ghost btn--sm" id="clear-button" type="button" aria-label="清空对话">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6" />
+              </svg>
+              清空对话
+            </button>
+          </div>
+        </div>
+
+        <section id="conversation" class="conversation" aria-label="对话记录">
+          <div id="empty-state" class="empty-state">
+            <p class="eyebrow">企业知识库 · 检索增强问答</p>
+            <h1 class="empty-state__title">问文档，拿带引用的回答。</h1>
+            <p class="empty-state__lede">
+              问题先在文档库中检索，再由模型基于命中的片段生成回答。引用会先于正文到达，点击可打开原文核对。
+            </p>
+
+            <aside class="scope-card" aria-labelledby="scope-title">
+              <div class="scope-card__head">
+                <h2 class="scope-card__title" id="scope-title">当前可问范围</h2>
+                <span class="badge badge--accent">
+                  <span class="badge__dot" aria-hidden="true"></span>
+                  语料：FastAPI 中文文档
+                </span>
+              </div>
+              <p class="scope-card__line">
+                <b>擅长</b>依赖注入、路由/参数、请求体/响应模型、安全、测试、部署
+              </p>
+              <p class="scope-card__line">
+                <b>不覆盖</b>Kafka、Kubernetes Operator、gRPC、GraphQL 等站外主题；这类问题会显示资料不足或拒答
+              </p>
+            </aside>
+
+            <div class="example-list" role="group" aria-label="示例问题">
+              <button class="example-q" type="button" data-question="FastAPI 的依赖注入怎么声明？">
+                FastAPI 的依赖注入怎么声明？
+                <span class="example-q__arrow" aria-hidden="true">→</span>
+              </button>
+              <button class="example-q" type="button" data-question="怎么给查询参数加长度和范围校验？">
+                怎么给查询参数加长度和范围校验？
+                <span class="example-q__arrow" aria-hidden="true">→</span>
+              </button>
+              <button class="example-q" type="button" data-question="怎么用响应模型过滤掉密码字段？">
+                怎么用响应模型过滤掉密码字段？
+                <span class="example-q__arrow" aria-hidden="true">→</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <div class="composer-dock">
+          <form id="ask-form" class="composer" novalidate>
+            <div class="composer__label-row">
+              <label class="label" for="question">问题</label>
+              <span class="composer__count" id="question-count">0 / 2000</span>
+            </div>
+            <textarea
+              class="textarea"
+              id="question"
+              name="question"
+              rows="1"
+              maxlength="2000"
+              placeholder="输入问题，例如：依赖注入怎么声明？"
+              required
+            ></textarea>
+            <div class="composer__actions">
+              <span class="composer__hint">Enter 发送 · Shift + Enter 换行</span>
+              <button class="btn btn--danger btn--sm" id="stop-button" type="button" hidden>
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <rect x="7" y="7" width="10" height="10" rx="1.5" />
+                </svg>
+                停止
+              </button>
+              <button class="btn btn--primary" id="send-button" type="submit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M22 2 11 13" />
+                  <path d="M22 2 15 22l-4-9-9-4Z" />
+                </svg>
+                发送
+              </button>
+            </div>
+          </form>
+          <p class="composer__note">回答由检索资料生成，可能不完整；请以引用原文为准。</p>
+        </div>
+      </div>
+
+      <aside class="chat-rail" aria-label="会话信息与说明">
+        <section class="rail__block" aria-labelledby="rail-session-title">
+          <h2 class="rail__title" id="rail-session-title">本轮会话</h2>
+          <dl class="rail__stats">
+            <div class="rail__stat">
+              <dt>问答</dt>
+              <dd id="rail-answers">—</dd>
+            </div>
+            <div class="rail__stat">
+              <dt>平均首 token</dt>
+              <dd id="rail-first-token">—</dd>
+            </div>
+            <div class="rail__stat">
+              <dt>降级</dt>
+              <dd id="rail-degraded">—</dd>
+            </div>
+            <div class="rail__stat">
+              <dt>引用</dt>
+              <dd id="rail-citations">—</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="rail__block" aria-labelledby="rail-path-title">
+          <h2 class="rail__title" id="rail-path-title">检索路径</h2>
+          <p class="rail__text">
+            embedder 向量化 → Qdrant 召回 → MySQL 回表取正文 → 拼接上下文 → 模型流式生成。引用编号对应本次提供的资料。
+          </p>
+        </section>
+
+        <section class="rail__block" aria-labelledby="rail-limit-title">
+          <h2 class="rail__title" id="rail-limit-title">边界</h2>
+          <p class="rail__text">
+            单轮问答，不保存对话上下文；未接大模型时为检索片段模式，LLM 失败时自动降级并以 done.degraded 标记。
+          </p>
+          <a class="link-arrow" href="about.html">
+            查看架构与边界
+            <span aria-hidden="true">→</span>
+          </a>
+        </section>
+      </aside>
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-footer__inner">
+        <span>rag-ingest-pipeline · 本地演示 · 回答与引用均来自真实接口</span>
+        <span><a href="about.html">架构说明</a></span>
+      </div>
+    </footer>
+
+    <script src="js/vendor/marked.min.js?v=20261104"></script>
+    <script src="js/vendor/purify.min.js?v=20261104"></script>
+    <script type="module" src="js/chat.js?v=20261104"></script>
+  </body>
+</html>

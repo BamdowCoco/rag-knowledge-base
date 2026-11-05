@@ -128,6 +128,78 @@ CRAWL_ONCE=false docker compose --profile crawler up -d crawler
 > 默认 `CRAWL_ONCE=true`，`run --rm` 抓完一轮即退出；`CRAWL_REPLAY=true` 跳过缓存强制重推。
 > 验收时按 `source='web'` 过滤：`scripts\mysql.cmd "select count(*) from document_clean where source='web';"`
 
+### 8. 打开演示前端
+
+```text
+# 一条命令：准备 .env → 起 compose → 停 mock syncer → 可选抓 20 页 → 打印地址
+scripts\demo.cmd
+
+# PowerShell
+.\scripts\demo.ps1
+```
+
+| 页面 | 地址 | 功能 |
+|---|---|---|
+| 聊天页 | `http://localhost:8001/` | 流式回答、引用 chips、来源/语言/top-k 筛选、反馈 |
+| 运维页 | `http://localhost:8001/admin.html` | 文档数、来源、chunk 状态、去重、爬虫最近一轮统计、最近文档 |
+| 关于页 | `http://localhost:8001/about.html` | 架构、技术栈、诚实边界 |
+| API 文档 | `http://localhost:8000/docs` | 摄入侧接口 |
+
+冒烟（会推一篇样例文档）：
+
+```text
+python scripts\smoke.py
+```
+
+> 前端由 `rag-api` 同源提供；运维页从 8001 调 api（8000）的统计接口，走白名单 CORS。
+> 运维页只在本机使用，不要通过公网隧道暴露。
+>
+> `demo.cmd` / `demo.ps1` 启动后会**停掉 mock `syncer`**，让来源分布和“重复同步拦截”只反映真实
+> `web` 语料；想看重复同步演示时执行 `docker compose start syncer` 恢复。
+>
+> 来源含义：`web` = P1 爬虫抓的 FastAPI 中文文档；`feishu` / `confluence` / `yuque` = mock 同步器样例；
+> `bench` = 压测数据（运维页默认隐藏）。
+>
+> 当前 `LLM_PROVIDER=extractive` 是**检索片段模式**，不是故障；想接真实模型时启动 Ollama 并改 `.env`。
+> 本分支只做本地 demo；VPS / Caddy / Cloudflare 隧道未做。
+
+### 9. 接云模型（可选，无需本地大模型）
+
+后端已经支持 OpenAI 兼容的 `/chat/completions`，**不需要在本机拉取大模型**。在 `.env` 里改
+下面几项，然后重启 `rag-api`：
+
+```env
+LLM_PROVIDER=openai_compat
+LLM_BASE_URL=https://api.deepseek.com/v1
+LLM_MODEL=deepseek-chat
+LLM_API_KEY=sk-...
+LLM_PATH=/chat/completions
+```
+
+示例端点（任选其一，按厂商文档确认模型名）：
+
+| 厂商 | `LLM_BASE_URL` | `LLM_MODEL` 示例 |
+|---|---|---|
+| DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` |
+| SiliconFlow | `https://api.siliconflow.cn/v1` | `Qwen/Qwen2.5-7B-Instruct` |
+| 通义 / 其他兼容端点 | 厂商的 `/v1` 基址 | 厂商模型名 |
+
+```text
+docker compose up -d --no-deps rag-api
+```
+
+- 按 token 计费；`LLM_MAX_TOKENS` / `LLM_CONTEXT_TOKENS` 控制单次成本；
+- 运维页「LLM 使用」用响应里的 `model` + 实际 `usage`（含 `prompt_cache_hit_tokens` /
+  `prompt_cache_miss_tokens`），按 DeepSeek 中文官方页的人民币价（2026-11-05 抓取）和
+  请求时的北京 peak/off-peak 时段自动估算费用；未知模型只显示 token，不估算；
+- 聊天页会把模型回答按 **Markdown** 渲染（标题/列表/代码块/表格/链接），HTML 先经
+  `DOMPurify` 白名单清洗；
+- 每条回答底部显示总 tokens、prompt/completion 分项、首 token/总耗时/检索耗时；
+  能匹配官方价格表时显示单次估算费用；
+- **不要把 key 写进仓库或 README**，`.env` 已被 `.gitignore` 忽略；
+- 云端失败时仍会自动降级到 extractive，`done.degraded=true`；
+- 接上云模型后，回答由模型组织，不再是“原文片段列表”。
+
 ---
 
 ## 接口一览
@@ -140,7 +212,8 @@ CRAWL_ONCE=false docker compose --profile crawler up -d crawler
 | GET | `/api/v1/documents` | 分页查询（`page/limit/source/q`），走缓存 |
 | GET | `/api/v1/documents/{id}` | 单篇详情 |
 | GET | `/api/v1/documents/{id}/chunks` | 分块列表（分页） |
-| GET | `/api/v1/documents/stats` | 文档数 / 按来源 top10 / 今日新增 / 去重计数 / chunk 状态分布 |
+| GET | `/api/v1/documents/stats` | 文档数 / 按来源 top10 / 今日新增 / 重复同步拦截 / chunk 状态分布 |
+| GET | `/api/v1/documents/crawler-stats` | 爬虫最近一轮统计（`crawl:stats` / `last_run` / `seen`） |
 | POST | `/api/v1/chunks/claim` | 下游 worker **认领**待向量化的 chunk（`SKIP LOCKED`，可并发抢） |
 | POST | `/api/v1/chunks/{id}/complete` | worker 上报完成 |
 | POST | `/api/v1/search` | 向量 / hybrid 检索（rag-api，8001）；请求可带 `retrieval_mode`、`use_cache` |
@@ -259,7 +332,7 @@ overlap 则是为了跨块语义连贯：检索命中一块时，不至于因为
 | 检索增强 | dense（默认）· MySQL FULLTEXT ngram + RRF 的 hybrid（按需开启，评测后决定不默认启用） |
 | 可观测性 | prometheus-client：HTTP / 检索 / LLM / 缓存 / 积压指标，顶层 `/metrics` |
 | AI 增强 | 规则档（py3langid + jieba）或 HTTP 上游（含 OpenAI 兼容协议） |
-| 测试 | pytest + pytest-asyncio（真 MySQL + 真 Redis + 真 Qdrant，286 条） |
+| 测试 | pytest + pytest-asyncio（真 MySQL + 真 Redis + 真 Qdrant，316 条） |
 
 ---
 

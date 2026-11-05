@@ -37,7 +37,9 @@ from app.core.metrics import (
 )
 from app.schemas.qa import Citation, SearchFilters
 from app.services.cache_service import cache_get, cache_set, get_list_version
-from app.services.llm_providers import EXTRACTIVE
+from app.services.llm_providers import EXTRACTIVE, EXTRACTIVE_FALLBACK
+from app.services.llm_pricing import CURRENCY, estimate_cost
+from app.services.llm_usage_service import record_usage
 from app.services.prompt_builder import (
     REFUSAL_TEXT,
     build_context,
@@ -188,6 +190,11 @@ class AnswerService:
         )
         if cached is not None:
             record_cache_hit("exact")
+            await record_usage(
+                self.redis,
+                model=cached.get("model", settings.llm_model),
+                cache_hit=True,
+            )
             cached_usage = cached.get("usage") or {}
             _log_qa_request(
                 trace_id=trace_id,
@@ -231,6 +238,7 @@ class AnswerService:
         if not hits or (threshold > 0 and outcome.best_dense_score < threshold):
             reason = "no_context" if not hits else "low_score"
             total_ms = (time.perf_counter() - started) * 1000
+            await record_usage(self.redis, model=settings.llm_model, refusal=True)
             _log_qa_request(
                 trace_id=trace_id,
                 question_hash=question_hash,
@@ -260,6 +268,7 @@ class AnswerService:
         if not used_hits:
             # 预算连一段都放不下（理论上 truncate 会保住一段，这里是防御）
             total_ms = (time.perf_counter() - started) * 1000
+            await record_usage(self.redis, model=settings.llm_model, refusal=True)
             _log_qa_request(
                 trace_id=trace_id,
                 question_hash=question_hash,
@@ -306,6 +315,7 @@ class AnswerService:
         answer_model = "extractive" if provider is EXTRACTIVE else settings.llm_model
 
         full = ""
+        provider_usage: dict[str, Any] = {}
         first_token_ms: float | None = None
         degraded = False
         # 只有「首 token 前失败、整段换成 extractive」才算一次降级；
@@ -319,6 +329,7 @@ class AnswerService:
                 messages=messages,
                 max_tokens=settings.llm_max_tokens,
                 temperature=settings.llm_temperature,
+                usage_out=provider_usage,
             ):
                 if first_token_ms is None:
                     first_token_ms = (time.perf_counter() - started) * 1000
@@ -328,14 +339,17 @@ class AnswerService:
             logger.warning("LLM 流式生成失败（已输出 %d 字符）：%s", len(full), exc)
             degraded = True
             if not full and provider is not EXTRACTIVE:
-                # 首 token 之前失败：整段换成兜底答案，仍然保持流式
+                # 首 token 之前失败：整段换成兜底答案，仍然保持流式。
+                # 用 FALLBACK 实例而不是主动 extractive 实例：文案是“模型暂不可用”。
                 fell_back = True
-                async for piece in EXTRACTIVE.stream(
+                answer_model = "extractive"
+                async for piece in EXTRACTIVE_FALLBACK.stream(
                     question=question,
                     hits=used_hits,
                     messages=messages,
                     max_tokens=settings.llm_max_tokens,
                     temperature=settings.llm_temperature,
+                    usage_out=provider_usage,
                 ):
                     if first_token_ms is None:
                         first_token_ms = (time.perf_counter() - started) * 1000
@@ -358,8 +372,24 @@ class AnswerService:
         _, valid_ids, invalid_ids = validate_citations(full, len(citations))
         grounded = bool(valid_ids) and not full.strip().startswith(REFUSAL_TEXT)
 
-        prompt_tokens = count_tokens(context)
-        completion_tokens = count_tokens(full)
+        usage_estimated = not bool(provider_usage)
+        if usage_estimated:
+            prompt_tokens = count_tokens(context)
+            completion_tokens = count_tokens(full)
+        else:
+            prompt_tokens = int(provider_usage.get("prompt_tokens", 0))
+            completion_tokens = int(provider_usage.get("completion_tokens", 0))
+        cached_tokens = int(provider_usage.get("prompt_cache_hit_tokens") or 0)
+        estimated_cost = (
+            estimate_cost(
+                answer_model,
+                prompt_tokens,
+                completion_tokens,
+                cached_tokens,
+            )
+            if answer_model != "extractive"
+            else None
+        )
 
         # 指标只做可观测：降级 / 中途失败也照常记录，用 done.degraded 区分
         record_llm_total(answer_model, total_ms / 1000)
@@ -373,8 +403,17 @@ class AnswerService:
             "prompt_tokens": prompt_tokens,
             "completion_tokens": completion_tokens,
             "total_tokens": prompt_tokens + completion_tokens,
-            "estimated": True,
+            "cached_tokens": cached_tokens,
+            "estimated": usage_estimated,
         }
+        await record_usage(
+            self.redis,
+            model=answer_model,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            degraded=degraded,
+            cost=estimated_cost,
+        )
         latency = {
             "retrieval": outcome.latency_ms,
             "first_token": int(first_token_ms) if first_token_ms is not None else 0,
@@ -394,6 +433,9 @@ class AnswerService:
             "score_type": score_type,
             "best_dense_score": outcome.best_dense_score,
             "keyword_hits": outcome.keyword_hits,
+            # 单次费用：extractive/降级没有 LLM 成本；未知模型为 None
+            "estimated_cost": estimated_cost,
+            "cost_currency": CURRENCY,
         }
         if degraded:
             done["reason"] = "llm_failed"
@@ -621,15 +663,27 @@ class AnswerService:
                 SseEvent("token", {"text": answer[start:start + _CACHE_CHUNK_SIZE]})
             )
         retrieval_mode = cached.get("retrieval_mode", "dense")
+        cached_model = cached.get("model", settings.llm_model)
+        cached_usage = cached.get("usage", {})
+        cached_cost = (
+            None
+            if cached_model == "extractive"
+            else estimate_cost(
+                cached_model,
+                int(cached_usage.get("prompt_tokens", 0)),
+                int(cached_usage.get("completion_tokens", 0)),
+                int(cached_usage.get("cached_tokens", 0)),
+            )
+        )
         events.append(
             SseEvent(
                 "done",
                 {
-                    "model": cached.get("model", settings.llm_model),
+                    "model": cached_model,
                     "degraded": False,
                     "grounded": cached.get("grounded", False),
                     "invalid_citations": cached.get("invalid_citations", 0),
-                    "usage": cached.get("usage", {}),
+                    "usage": cached_usage,
                     "latency_ms": {"retrieval": 0, "first_token": 0, "total": 0},
                     "cache_hit": True,
                     "retrieval_mode": retrieval_mode,
@@ -639,6 +693,8 @@ class AnswerService:
                     ),
                     "best_dense_score": cached.get("best_dense_score", 0.0),
                     "keyword_hits": cached.get("keyword_hits", 0),
+                    "estimated_cost": cached_cost,
+                    "cost_currency": CURRENCY,
                 },
             )
         )
@@ -688,6 +744,8 @@ class AnswerService:
                     "score_type": "rrf" if outcome.mode == "hybrid" else "cosine",
                     "best_dense_score": outcome.best_dense_score,
                     "keyword_hits": outcome.keyword_hits,
+                    "estimated_cost": None,
+                    "cost_currency": CURRENCY,
                 },
             ),
         ]

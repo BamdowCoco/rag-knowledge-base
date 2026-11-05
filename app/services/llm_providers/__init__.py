@@ -1,15 +1,23 @@
 """
 LLM provider 注册表（懒加载 ``openai_compat`` + ``extractive`` 单例）。
 
-``extractive`` 只依赖标准库与 ``prompt_builder`` ，可以顶层实例化 ——
-它同时是"LLM 首 token 前失败"时的降级终点，``answer_service`` 会直接引用 ``EXTRACTIVE`` 。
+``extractive`` 只依赖标准库与 ``prompt_builder`` ，可以顶层实例化。这里有两个实例：
+
+- ``EXTRACTIVE``：**主动选择** ``LLM_PROVIDER=extractive`` 时使用，提示语是“检索片段模式”；
+- ``EXTRACTIVE_FALLBACK``：LLM 首 token 前失败时使用，提示语是“模型暂不可用”。
+
+两个实例共用同一套片段整理逻辑，但用户看到的文案不同 —— 主动选择不是故障。
+
 ``openai_compat`` 依赖共享 httpx 客户端，首次选中时才 import / 实例化。
 """
 from .base import LLMError, LLMProvider
-from .extractive import ExtractiveProvider
+from .extractive import DEMO_NOTICE, ExtractiveProvider
 
-# 降级链的终点单例 —— answer_service 首 token 前失败时直接用它
-EXTRACTIVE = ExtractiveProvider()
+# 主动选择 extractive 时的单例（演示模式，不是故障）
+EXTRACTIVE = ExtractiveProvider(notice=DEMO_NOTICE)
+
+# LLM 首 token 前失败时的兜底单例（文案是“模型暂不可用”）
+EXTRACTIVE_FALLBACK = ExtractiveProvider()
 
 # 已实例化的 provider 缓存（extractive 一开始就在里面）
 _CACHE: dict[str, LLMProvider] = {"extractive": EXTRACTIVE}
@@ -59,6 +67,7 @@ def available() -> list[str]:
 
 __all__ = [
     "EXTRACTIVE",
+    "EXTRACTIVE_FALLBACK",
     "LLMError",
     "LLMProvider",
     "available",

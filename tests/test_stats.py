@@ -17,6 +17,18 @@ async def test_stats_counts_and_chunk_status(client, make_doc):
     assert status.get("done", 0) == 0
 
 
+async def test_stats_excludes_bench_by_default(client, make_doc):
+    """bench 压测数据不混进 by_source，而是单独放在 bench_count。"""
+    await client.post("/api/v1/documents", json=make_doc(source="web"))
+    await client.post("/api/v1/documents", json=make_doc(source="bench"))
+
+    body = (await client.get("/api/v1/documents/stats")).json()
+
+    assert body["total"] == 2
+    assert {r["source"]: r["count"] for r in body["by_source"]} == {"web": 1}
+    assert body["bench_count"] == 1
+
+
 async def test_stats_dedup_rejected(client, make_doc):
     doc = make_doc()
     await client.post("/api/v1/documents", json=doc)

@@ -157,16 +157,35 @@ class DocumentService:
         看板指标 60s 粒度可接受，也与 total/today_count 的陈旧度一致 —— 不为它破例。
 
         :return: 统计字段 dict（total / by_source / today_count / dedup_rejected /
-            chunk_status）。
+            chunk_status / bench_count）。
         """
         version = await get_list_version(self.redis)
         cache_key = stats_cache_key(version)
         cached = await cache_get(self.redis, cache_key)
         if cached is not None:
+            # 兼容上线前的旧缓存：旧 payload 的 by_source 里可能还带着 bench。
+            by_source_cached = [
+                item
+                for item in cached.get("by_source", [])
+                if item.get("source") != "bench"
+            ]
+            bench_cached = next(
+                (
+                    item.get("count", 0)
+                    for item in cached.get("by_source", [])
+                    if item.get("source") == "bench"
+                ),
+                0,
+            )
+            cached["by_source"] = by_source_cached
+            cached.setdefault("bench_count", bench_cached)
             return cached
 
         today_start, today_end = beijing_today_utc_range()
-        by_source = await self.repo.count_by_source(limit=10)
+        raw_by_source = await self.repo.count_by_source(limit=10)
+        # 压测数据单独计数：18 万条 bench 会把运维页的真实来源条形压平，默认不进 by_source。
+        bench_count = next((n for source, n in raw_by_source if source == "bench"), 0)
+        by_source = [(source, n) for source, n in raw_by_source if source != "bench"]
         chunk_status = await self.repo.count_chunks_by_status()
         payload = {
             "total": await self.repo.count_documents(),
@@ -174,6 +193,7 @@ class DocumentService:
             "today_count": await self.repo.count_since(today_start, today_end),
             "dedup_rejected": await get_rejected_count(self.redis),
             "chunk_status": [{"status": s, "count": n} for s, n in chunk_status],
+            "bench_count": bench_count,
         }
         await cache_set(self.redis, cache_key, payload, ttl=settings.cache_ttl)
         return payload

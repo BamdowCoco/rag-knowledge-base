@@ -21,6 +21,8 @@ from pathlib import Path
 from alembic import command
 from alembic.config import Config as AlembicConfig
 from fastapi import FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from app.api.v1.router import api_router
@@ -42,6 +44,10 @@ logger = logging.getLogger(__name__)
 
 # alembic.ini 在仓库根（app/ 的上一层）—— 用绝对路径，不依赖启动时的 CWD
 _ALEMBIC_INI = Path(__file__).resolve().parent.parent / "alembic.ini"
+
+# 演示前端目录（仓库根的 ``web/``）—— 同样用绝对路径，容器里是 ``/app/web``。
+# 本地开发没写前端时目录可能不存在，挂载前会判断。
+_WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
 
 def _upgrade_schema() -> None:
@@ -157,6 +163,40 @@ async def count_http_requests(
     return response
 
 
+@app.middleware("http")
+async def no_cache_static_assets(
+    request: Request,
+    call_next: Callable[[Request], Awaitable[Response]],
+) -> Response:
+    """
+    给演示用静态页/资源加 ``Cache-Control: no-cache``。
+
+    ``no-cache`` 不是不缓存，而是“每次先回源校验”。本地 demo 改完前端后，
+    浏览器不会继续拿旧 ``admin.js`` 把已经排除的 bench 又画出来。
+    只对非 ``/api/`` 路径生效，接口缓存策略不受影响。
+
+    :param request: 入站请求。
+    :param call_next: 下游处理。
+    :return: 原响应（仅补一个缓存头）。
+    """
+    response = await call_next(request)
+    if not request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
+# CORS 白名单：运维页跑在 rag-api 的静态页上（:8001），统计接口在 api（:8000），
+# 跨源调用要靠它放行。**注册放在最后** —— ``add_middleware`` 后加的更靠外层，
+# 这样预检请求在计数中间件之前就被 CORSMiddleware 直接应答，不会混进业务请求计数。
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origin_list,   # 具体白名单，不用 "*"
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_credentials=False,                   # 纯白名单来源，不带 cookie，无需凭据
+)
+
+
 if settings.app_role in ("all", "rag"):
     @app.get("/metrics", include_in_schema=False)
     async def metrics() -> Response:
@@ -179,3 +219,12 @@ async def health() -> dict[str, str]:
     :return: ``{"status": "ok"}``；能返回就说明进程在正常处理请求。
     """
     return {"status": "ok"}
+
+
+# ---------- 演示前端（静态页） ----------
+# **必须挂在所有具体路由之后**：``mount("/")`` 是兜底匹配，Starlette 按注册顺序找路由，
+# 排在前面会把 ``/api/v1/*``、``/health``、``/metrics`` 一起吃掉（静态目录里找不到就 404）。
+# 只在 ``all`` / ``rag`` 角色挂 —— 和问答接口的可见范围一致；``ingest`` 是纯写入进程。
+if settings.app_role in ("all", "rag") and _WEB_DIR.is_dir():
+    app.mount("/", StaticFiles(directory=str(_WEB_DIR), html=True), name="web")
+    logger.info("演示前端已挂载：%s", _WEB_DIR)

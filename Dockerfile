@@ -23,6 +23,9 @@ RUN pip install --no-cache-dir -r requirements.txt \
 # ---- 再拷代码 ----
 # 这里只拷 app/（不拷 .env：镜像里不留口令，配置由 compose 的 env_file/environment 注入）
 COPY app/ ./app/
+# 演示前端（零构建静态页）：APP_ROLE=all / rag 时由 FastAPI 挂到 /；test stage 继承本 stage，
+# 所以测试镜像里也能验证静态页与资源路径
+COPY web/ ./web/
 
 # 运维小工具（如 scripts/probe_upstream.py 单验上游）—— 拷进来就能 `docker compose exec` 直接跑，
 # 不必额外挂卷（api 有 container_name，`compose run` 会和在跑的容器抢名字）

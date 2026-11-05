@@ -41,6 +41,7 @@ class OpenAICompatLLMProvider:
         messages: list[dict],
         max_tokens: int,
         temperature: float,
+        usage_out: dict[str, Any] | None = None,
     ) -> AsyncIterator[str]:
         """
         以 SSE 流的方式请求上游并逐段产出文本。
@@ -48,11 +49,16 @@ class OpenAICompatLLMProvider:
         ``hits`` 在这里用不到 —— prompt 已经由 ``prompt_builder`` 拼进 ``messages`` 了；
         参数保留是为了与协议一致。
 
+        **usage：** 请求带 ``stream_options.include_usage``，上游最后一个 chunk 会带
+        ``usage``（含 cache hit / miss token）；写进 ``usage_out`` 供费用与运维统计使用。
+        不是所有兼容端点都支持该字段，不支持时会忽略，回答仍正常。
+
         :param question: 用户问题（仅用于日志）。
         :param hits: 检索片段（忽略）。
         :param messages: system + user 消息。
         :param max_tokens: 生成上限。
         :param temperature: 采样温度。
+        :param usage_out: 可选的可变字典，用于接收上游 usage。
         :return: 文本增量的异步迭代器。
         :raises LLMError: 基址为空，或流中出现无法解析的 JSON。
         :raises httpx.HTTPStatusError: 上游返回非 2xx（流式请求在拿到响应头时即抛）。
@@ -66,6 +72,7 @@ class OpenAICompatLLMProvider:
             "model": settings.llm_model,
             "messages": messages,
             "stream": True,
+            "stream_options": {"include_usage": True},
             "temperature": temperature,
             "max_tokens": max_tokens,
         }
@@ -97,6 +104,11 @@ class OpenAICompatLLMProvider:
                     ) from exc
 
                 choices = chunk.get("choices") or []
+                usage = chunk.get("usage")
+                if usage and usage_out is not None:
+                    # 最后一个 chunk 常只有 usage、没有 choices；必须在 continue 之前接住。
+                    usage_out.clear()
+                    usage_out.update(usage)
                 if not choices:
                     continue
                 delta = choices[0].get("delta") or {}

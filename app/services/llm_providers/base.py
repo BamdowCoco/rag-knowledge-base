@@ -39,6 +39,7 @@ class LLMProvider(Protocol):
         messages: list[dict],
         max_tokens: int,
         temperature: float,
+        usage_out: dict[str, Any] | None = None,
     ) -> AsyncIterator[str]:
         """
         流式生成回答。
@@ -48,6 +49,8 @@ class LLMProvider(Protocol):
         :param messages: 已拼好的对话消息（``openai_compat`` 用）。
         :param max_tokens: 生成上限。
         :param temperature: 采样温度。
+        :param usage_out: 可选的可变字典；provider 把上游返回的 usage 写进去
+            （token / cache hit-miss）。不支持的 provider 忽略。
         :return: 文本增量的异步迭代器（每次 ``yield`` 一段非空文本）。
         :raises LLMError: 配置错误或上游流解析失败。
         """

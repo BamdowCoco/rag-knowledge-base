@@ -38,6 +38,9 @@ services:
       # 摄入进程只挂 documents/chunks/stats 路由，并跑迁移 + 回收 / enrich 循环
       APP_ROLE: ingest
       ENRICH_MODEL_URL: "http://model:8000/enrich"   # enrich 走模型服务时去哪儿调
+      # 演示运维页由 rag-api 的静态页（:8001）提供，却要调本进程的统计接口；
+      # 白名单放行本机两个端口（.env 里写了 CORS_ORIGINS 就用 .env 的）
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8000,http://localhost:8001,http://127.0.0.1:8000,http://127.0.0.1:8001}
     depends_on:
       # service_healthy：等对方健康检查通过再启动，防止应用崩溃
       mysql:
@@ -85,6 +88,8 @@ services:
       LLM_MODEL: ${LLM_MODEL:-qwen2.5:3b-instruct}
       # 问答进程不需要那么多 worker：并发远低于摄入
       API_WORKERS: 2
+      # 静态页（本进程 :8001）跨源调 api（:8000）的统计接口；白名单与 api 一致
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8000,http://localhost:8001,http://127.0.0.1:8000,http://127.0.0.1:8001}
     depends_on:
       mysql:
         condition: service_healthy
