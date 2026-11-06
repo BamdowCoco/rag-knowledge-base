@@ -117,6 +117,9 @@ docker compose --profile test run --rm test pytest -q tests/crawler
 > 更细的逐步验收（每一步"应该看到什么"）、常见症状、Windows 上的 shell 差异，
 > 都在 `docs/README-旧版.md`（本地留存，未入库）。
 
+> 公网部署：`deploy/` 提供 Caddy 反向代理 + `compose.vps.yml` 覆盖；
+> 快速说明见 `deploy/README.md`，完整中文步骤在本地 `docs/提升方案/云服务器部署.md`。
+
 ### 7. 真实上游爬虫（可选）
 
 `crawler` 从 FastAPI 中文文档的 sitemap 发现页面，走同一套 `/documents/bulk` 接入：

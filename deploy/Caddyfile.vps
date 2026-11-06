@@ -1,0 +1,38 @@
+# 公网 VPS 的 Caddy 配置
+#
+# 启动前先在 .env 里把 PUBLIC_DOMAIN 改成真实域名。
+# 下面的 Basic Auth 是演示占位账号：
+#   用户名：demo
+#   密码：rag-demo-2026
+# 正式暴露到公网前必须改掉：
+#   docker run --rm caddy:2-alpine caddy hash-password --plaintext 'your-password'
+# 然后用新 hash 替换下面这行。
+#
+# 路由规则：
+#   /api/v1/documents* 和 /api/v1/chunks* -> ingest api
+#   其余（前端页面、/search、/chat、/feedback、/health、/metrics）
+#   -> rag-api
+#
+# MySQL / Redis / Qdrant 不会经过这里；它们只在 Docker 内网。
+
+{$PUBLIC_DOMAIN} {
+    encode zstd gzip
+
+    basic_auth {
+        demo $2b$14$pvMbCp8cUnQhYx77NP547.Fj9.IlGPIKfNKelbb3AbwNtAznMGS6q
+    }
+
+    @ingest path /api/v1/documents* /api/v1/chunks*
+    handle @ingest {
+        reverse_proxy api:8000
+    }
+
+    handle {
+        reverse_proxy rag-api:8000
+    }
+
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+}

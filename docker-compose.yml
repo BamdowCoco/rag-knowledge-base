@@ -23,7 +23,7 @@ services:
     # 不和 rag-api 抢名字 —— 两者的容器名必须不同
     container_name: rag-ingest-api
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     # env_file 只提供账号 / 口令 / 业务参数（.env 里没有 host/port）
     env_file:
       - .env
@@ -64,7 +64,7 @@ services:
       context: .
       target: rag
     ports:
-      - "8001:8000"
+      - "127.0.0.1:8001:8000"
     env_file:
       - .env
     environment:
@@ -119,7 +119,7 @@ services:
     image: qdrant/qdrant:v1.12.4
     container_name: rag-qdrant
     ports:
-      - "6333:6333"                     # 只给宿主机 GUI / curl 排查；应用走 qdrant:6333
+      - "127.0.0.1:6333:6333"           # 只给宿主机 GUI / curl 排查；应用走 qdrant:6333
     volumes:
       - qdrant_data:/qdrant/storage     # 命名卷：容器删了索引还在（也可随时从 MySQL 重建）
     restart: unless-stopped
@@ -223,7 +223,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_DB: "15"               # 独享 redis db 号（生产是 0）；清库只用 flushdb 不用 flushall
-      DB_ROOT_PASSWORD: root123456 # 建 rag_ingest_test 要 root 权限（app 用户没这个库的权限）
+      DB_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456} # 建 rag_ingest_test 要 root 权限（app 用户没这个库的权限）
       # 【测试绝不打真上游】哪怕 .env 里切成 openai_compat（联机验收时会那么切），测试也一律走规则 ——
       # 否则一条"逐项降级"的纯函数单测会真去调厂商 API（花真钱）。这个坑踩过一次了。
       ENRICH_PROVIDER: rule
@@ -271,10 +271,11 @@ services:
     image: mysql:8.0
     container_name: rag-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: root123456   # 仅本地开发用
-      MYSQL_DATABASE: rag_ingest           # 对应 .env 的 DB_NAME
-      MYSQL_USER: app                   # 对应 DB_USER
-      MYSQL_PASSWORD: app               # 对应 DB_PASSWORD
+      # 本地默认值便于开箱跑；公网部署务必在 .env 里改成强口令
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      MYSQL_DATABASE: ${DB_NAME:-rag_ingest}   # 对应 .env 的 DB_NAME
+      MYSQL_USER: ${DB_USER:-app}              # 对应 DB_USER
+      MYSQL_PASSWORD: ${DB_PASSWORD:-app}      # 对应 DB_PASSWORD
       # 【为什么要有 LANG】mysql 客户端按 OS locale 选会话字符集；容器里不设 locale 它会退回 latin1，
       # 于是把中文转成 latin1 再发出来 —— 表示不了的字符直接变 `?`（有损，不是显示问题）。
       # 服务端与 app 侧本来就是 utf8mb4（见下面的 command 与 DSN 的 charset），只有命令行客户端会中招。
@@ -286,7 +287,7 @@ services:
       # 中文全文检索用 ngram 解析器；token size=2 是默认值，显式写出来便于排查
       - --ngram-token-size=2
     ports:
-      - "3307:3306"                     # 只给宿主机 GUI 工具；应用走服务名 mysql:3306
+      - "127.0.0.1:3307:3306"           # 只给宿主机 GUI 工具；应用走服务名 mysql:3306
     volumes:
       - mysql_data:/var/lib/mysql       # 命名卷：容器删了数据还在
     healthcheck:
@@ -305,7 +306,7 @@ services:
     container_name: rag-redis
     command: ["redis-server", "--appendonly", "yes"]   # 开 AOF 持久化
     ports:
-      - "6380:6379"                     # 只给宿主机 GUI 工具；应用走服务名 redis:6379
+      - "127.0.0.1:6380:6379"           # 只给宿主机 GUI 工具；应用走服务名 redis:6379
     volumes:
       - redis_data:/data
     healthcheck:

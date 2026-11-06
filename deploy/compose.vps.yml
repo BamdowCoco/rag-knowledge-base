@@ -1,0 +1,31 @@
+# 公网 VPS 叠加配置：在现有 compose 栈前面加一层 Caddy。
+#
+# 用法（在仓库根目录执行）：
+#   docker compose -f docker-compose.yml -f deploy/compose.vps.yml up -d --build
+#
+# base compose 负责 api / rag-api / mysql / redis / qdrant 等服务；
+# 这个文件只增加公网入口，不重复定义应用服务。
+services:
+  proxy:
+    image: caddy:2-alpine
+    container_name: rag-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file:
+      - .env
+    volumes:
+      - ./deploy/Caddyfile.vps:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+      rag-api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [backend]
+
+volumes:
+  caddy_data:
+  caddy_config:
