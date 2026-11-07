@@ -26,6 +26,16 @@ services:
     restart: unless-stopped
     networks: [backend]
 
+  # 公网部署不启动 mock 上下游：
+  # - 真实上游用 crawler（profile=crawler，手动 run）；
+  # - 真实下游是 embedder；
+  # - model 只服务 ENRICH_PROVIDER=model，公网默认 rule / openai_compat。
+  # 需要本地联调时：docker compose ... --profile mock up -d
+  model:
+    profiles: ["mock"]
+  syncer:
+    profiles: ["mock"]
+
 volumes:
   caddy_data:
   caddy_config:

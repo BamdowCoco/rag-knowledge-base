@@ -14,6 +14,29 @@ Internet 80/443
   mysql / redis / qdrant 只在 Docker 内网
 ```
 
+## 公网默认启动哪些服务
+
+`compose.vps.yml` 把 `model` 与 `syncer` 归入 `mock` profile，公网部署默认只启动：
+
+```text
+api / rag-api / embedder / mysql / redis / qdrant / proxy
+```
+
+- 真实上游用 `crawler`（profile=crawler，手动运行）：
+
+```text
+docker compose -f docker-compose.yml -f deploy/compose.vps.yml \
+  --profile crawler run --rm -e CRAWL_MAX_PAGES=150 crawler
+```
+
+- 需要在服务器上联调 mock 时：
+
+```text
+docker compose -f docker-compose.yml -f deploy/compose.vps.yml --profile mock up -d
+```
+
+- `.env` 保持 `ENRICH_PROVIDER=rule`（默认）或 `openai_compat`，不要用 `model`。
+
 ## VPS 快速开始
 
 ```bash
