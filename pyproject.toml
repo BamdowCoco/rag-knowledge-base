@@ -1,6 +1,6 @@
 # 项目配置（运行依赖在 requirements.txt，见下）
 [project]
-name = "rag-ingest-pipeline"
+name = "rag-knowledge-base"
 version = "0.1.0"
 requires-python = ">=3.11"
 # 运行依赖只在 requirements.txt 里维护 —— 那是唯一被读取的地方

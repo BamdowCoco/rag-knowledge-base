@@ -163,7 +163,7 @@ services:
       CRAWL_ONCE: ${CRAWL_ONCE:-true}
       CRAWL_INTERVAL_SECONDS: ${CRAWL_INTERVAL_SECONDS:-21600}
       CRAWL_REPLAY: ${CRAWL_REPLAY:-false}
-      CRAWL_USER_AGENT: "${CRAWL_USER_AGENT:-rag-ingest-demo/0.1 (+https://github.com/BamdowCoco/rag-ingest-pipeline)}"
+      CRAWL_USER_AGENT: "${CRAWL_USER_AGENT:-rag-knowledge-base-demo/0.1 (+https://github.com/BamdowCoco/rag-knowledge-base)}"
       BULK_SIZE: ${BULK_SIZE:-30}
     depends_on:
       api: {condition: service_healthy}

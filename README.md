@@ -1,10 +1,11 @@
-# 企业知识库 RAG 数据接入与预处理管道
+# 企业知识库 RAG 问答系统
 
-> 多个同步器（飞书 / Confluence / 语雀 / 本地上传）把文档推进来，管道负责
-> **标准化 → 内容去重 → 落库 → 切块 → 派发向量化任务**，
-> 为下游的向量检索 / RAG 提供干净、切好块、带状态的数据。
-
-**去重挡掉重复同步 —— 省的是按量计费的 embedding 调用。**
+> 从多源文档入库到带引用流式问答的端到端实现：
+> 同步器 / 爬虫 → 幂等去重 → token 精确切块 → BGE + Qdrant 向量化
+> → dense/hybrid 检索 → 带引用 SSE 问答 → 50 题评测。
+>
+> 差异化在入库链路：去重挡掉重复同步，省的是按量计费的 embedding 调用；
+> 入库只标 pending，`SKIP LOCKED` 多 worker 分发，worker 崩溃可回收。
 
 ---
 
@@ -359,7 +360,7 @@ overlap 则是为了跨块语义连贯：检索命中一块时，不至于因为
 ## 目录结构
 
 ```
-rag-ingest-pipeline/
+rag-knowledge-base/
 ├── app/
 │   ├── main.py                        # FastAPI 入口；lifespan 起停后台循环、释放连接
 │   ├── api/

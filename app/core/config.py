@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     )
 
     # ---------- 应用 ----------
-    app_name: str = "企业知识库 RAG 接入管道"
+    app_name: str = "企业知识库 RAG 问答系统"
     debug: bool = False
     api_port: int = 8000
     log_level: str = "INFO"

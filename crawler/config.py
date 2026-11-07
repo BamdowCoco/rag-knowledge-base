@@ -91,7 +91,7 @@ class CrawlConfig:
     delay_seconds: float = 1.0
     timeout_seconds: float = 15.0
     max_retries: int = 3
-    user_agent: str = "rag-ingest-demo/0.1 (+https://github.com/BamdowCoco/rag-ingest-pipeline)"
+    user_agent: str = "rag-knowledge-base-demo/0.1 (+https://github.com/BamdowCoco/rag-knowledge-base)"
     once: bool = True
     max_page_bytes: int = 2 * 1024 * 1024
     max_sitemap_bytes: int = 10 * 1024 * 1024
@@ -128,7 +128,7 @@ class CrawlConfig:
             max_retries=_env_int("CRAWL_MAX_RETRIES", 3),
             user_agent=os.getenv(
                 "CRAWL_USER_AGENT",
-                "rag-ingest-demo/0.1 (+https://github.com/BamdowCoco/rag-ingest-pipeline)",
+                "rag-knowledge-base-demo/0.1 (+https://github.com/BamdowCoco/rag-knowledge-base)",
             ),
             once=_env_bool("CRAWL_ONCE", True),
             max_page_bytes=_env_int("CRAWL_MAX_PAGE_BYTES", 2 * 1024 * 1024),

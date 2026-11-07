@@ -27,7 +27,7 @@ def make_cfg(**overrides: Any) -> SimpleNamespace:
     :return: 带属性的简单对象（``fetch`` 只按属性读取，不依赖具体类型）。
     """
     values: dict[str, Any] = {
-        "user_agent": "rag-ingest-demo/0.1 (+https://github.com/BamdowCoco/rag-ingest-pipeline)",
+        "user_agent": "rag-knowledge-base-demo/0.1 (+https://github.com/BamdowCoco/rag-knowledge-base)",
         "max_retries": 2,
         "timeout_seconds": 5.0,
         "max_page_bytes": 1024,
@@ -299,7 +299,7 @@ async def test_fetch_bytes_returns_payload_and_enforces_limit() -> None:
 
 def test_robots_empty_or_comment_only_allows_all() -> None:
     """没有生效指令（例如目标站 robots 全是注释）时默认允许。"""
-    rules = RobotsRules.parse("# 全是注释\n\n", "rag-ingest-demo/0.1")
+    rules = RobotsRules.parse("# 全是注释\n\n", "rag-knowledge-base-demo/0.1")
 
     assert rules.allowed("https://example.com/zh/") is True
     assert rules.crawl_delay is None
@@ -313,7 +313,7 @@ Disallow: /private/
 Allow: /private/public/
 Crawl-delay: 2
 """
-    rules = RobotsRules.parse(text, "rag-ingest-demo/0.1")
+    rules = RobotsRules.parse(text, "rag-knowledge-base-demo/0.1")
 
     assert rules.allowed("https://example.com/private/x") is False
     assert rules.allowed("https://example.com/private/public/x") is True
@@ -327,10 +327,10 @@ def test_robots_specific_user_agent_overrides_star() -> None:
 User-agent: *
 Disallow: /
 
-User-agent: rag-ingest-demo
+User-agent: rag-knowledge-base-demo
 Disallow: /admin/
 """
-    rules = RobotsRules.parse(text, "Rag-Ingest-Demo/0.1 (+https://github.com/BamdowCoco/rag-ingest-pipeline)")
+    rules = RobotsRules.parse(text, "Rag-Knowledge-Base-Demo/0.1 (+https://github.com/BamdowCoco/rag-knowledge-base)")
 
     assert rules.allowed("https://example.com/zh/") is True
     assert rules.allowed("https://example.com/admin/x") is False
@@ -339,11 +339,11 @@ Disallow: /admin/
 def test_robots_wildcard_and_end_anchor() -> None:
     """支持 ``*`` 通配与结尾 ``$`` 锚定。"""
     text = """
-User-agent: rag-ingest-demo
+User-agent: rag-knowledge-base-demo
 Disallow: /*/secret$
 Crawl-delay: 1.5
 """
-    rules = RobotsRules.parse(text, "rag-ingest-demo/0.1")
+    rules = RobotsRules.parse(text, "rag-knowledge-base-demo/0.1")
 
     assert rules.allowed("https://example.com/zh/secret") is False
     assert rules.allowed("https://example.com/zh/secret/page") is True
@@ -357,7 +357,7 @@ User-agent: *
 Disallow: /path
 Allow: /path
 """
-    rules = RobotsRules.parse(text, "rag-ingest-demo/0.1")
+    rules = RobotsRules.parse(text, "rag-knowledge-base-demo/0.1")
 
     assert rules.allowed("https://example.com/path") is True
 
