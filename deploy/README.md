@@ -9,7 +9,6 @@
 Internet 80/443
   -> Caddy（自动 TLS、路径分区、访客会话校验）
       /demo/login          -> 公开登录页
-      /demo/help.html      -> 公开访问说明
       /demo/api/v1/auth/*  -> 公开登录 / 退出 / forward_auth check
       /demo/*              -> forward_auth 后反代 rag-api（剥离前缀 + X-Demo-Mode）
       /demo/admin* 等      -> 404
@@ -36,8 +35,7 @@ Internet 80/443
 - **访客**打开 `https://<PUBLIC_DOMAIN>/demo/`，会跳到登录页，输入
   `deploy/caddy/guests.caddy` 里的用户名/密码；
 - 访客密码错误会在登录页直接显示“用户名或密码错误”，不会再反复弹浏览器登录框；
-- 登录成功后 Cookie 有效期 7 天，右上角“退出”可清 Cookie；
-- 帮助页 `https://<PUBLIC_DOMAIN>/demo/help.html` 免认证，说明账号来源和登录流程。
+- 登录成功后 Cookie 有效期 7 天，右上角“退出”可清 Cookie。
 
 ## 公网默认启动哪些服务
 

@@ -66,7 +66,7 @@
         line-height: 1.3;
       }
       .card {
-        padding: 34px 34px 26px;
+        padding: 34px 34px 30px;
         background: var(--surface);
         border: 1px solid var(--line);
         border-radius: 14px;
@@ -181,33 +181,6 @@
       }
       .btn[data-loading="true"] .btn__spinner { display: block; }
       @keyframes spin { to { transform: rotate(360deg); } }
-      .hint {
-        margin: 18px 0 0;
-        padding: 11px 12px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: #fafaf6;
-        color: var(--ink-muted);
-        font-size: 12.5px;
-        line-height: 1.6;
-        text-wrap: pretty;
-      }
-      .hint strong { color: var(--ink-soft); font-weight: 650; }
-      .foot {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px 14px;
-        margin: 20px 0 0;
-        padding-top: 16px;
-        border-top: 1px solid var(--line);
-        color: var(--ink-muted);
-        font-size: 12.5px;
-      }
-      .foot a { color: var(--accent); text-decoration: none; }
-      .foot a:hover { text-decoration: underline; }
-      .foot__links { display: flex; gap: 14px; }
       .noscript {
         margin: 0 0 15px;
         padding: 10px 12px;
@@ -291,18 +264,6 @@
             <span id="login-submit-label">登录</span>
           </button>
         </form>
-
-        <p class="hint">
-          <strong>输错密码会在这里提示</strong>，不会再反复弹浏览器登录框；账号失效请联系投递人重新发放。
-        </p>
-
-        <div class="foot">
-          <span>账号由投递邮件提供</span>
-          <span class="foot__links">
-            <a href="/demo/help.html">访问说明</a>
-            <a href="/">站主入口</a>
-          </span>
-        </div>
       </main>
     </div>
 
