@@ -37,6 +37,12 @@
         redir /demo/ 308
     }
 
+    # 公开的访问说明页：不经过 Basic Auth，输错密码后可从这里核对入口
+    handle /demo/help.html {
+        uri strip_prefix /demo
+        reverse_proxy rag-api:8000
+    }
+
     # 访客区禁止项：先返回 404，不落到站主区触发登录框
     @demo_blocked path /demo/admin* /demo/metrics* /demo/health* /demo/docs* /demo/redoc* /demo/openapi.json /demo/api/v1/documents* /demo/api/v1/chunks*
     handle @demo_blocked {
@@ -46,8 +52,8 @@
     # 访客区：问答页 + 关于页 + 静态资源 + 问答 API
     @demo path /demo/*
     handle @demo {
-        # realm 是 basic_auth 的位置参数，不是块内子指令
-        basic_auth bcrypt "RAG demo" {
+        # realm 是 basic_auth 的位置参数，不是块内子指令；弹窗里会显示这段提示
+        basic_auth bcrypt "RAG demo - help: https://{$PUBLIC_DOMAIN}/demo/help.html" {
             import /etc/caddy/local/guests.caddy
         }
         uri strip_prefix /demo

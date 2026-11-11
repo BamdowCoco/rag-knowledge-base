@@ -25,6 +25,16 @@ Internet 80/443
 
 站主区是根路径 `/`：完整前端、`/admin.html`、问答接口和摄入接口。
 
+## 登录提示
+
+- **站主**用根路径 `https://<PUBLIC_DOMAIN>/`，账号来自 `deploy/caddy/owner.caddy`；
+- **访客**用 `https://<PUBLIC_DOMAIN>/demo/`，账号来自 `deploy/caddy/guests.caddy`；
+- 访客账号不能进站主区，站主账号也不在 `/demo/` 的账号列表里（保持分区）；
+- Basic Auth 输错用户名/密码时，浏览器会反复弹登录框，不会显示“密码错误”——这是浏览器
+  接管 401 的行为，Caddy 无法自定义登录框里的报错；
+- 弹窗的 realm 文本里带帮助地址；`https://<PUBLIC_DOMAIN>/demo/help.html` 免认证，
+  说明账号来源、站主入口和 Basic Auth 的限制。
+
 ## 公网默认启动哪些服务
 
 `compose.vps.yml` 把 `model` 与 `syncer` 归入 `mock` profile，公网部署默认只启动：

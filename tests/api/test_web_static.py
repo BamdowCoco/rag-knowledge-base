@@ -1,5 +1,6 @@
 """
-演示前端静态页：``GET /``、``/admin.html``、``/about.html`` 与分层资源都能取到。
+演示前端静态页：``GET /``、``/admin.html``、``/about.html``、``/help.html``
+与分层资源都能取到。
 
 测试环境 ``APP_ROLE=all``（见 compose 的 test 服务），``web/`` 由 Dockerfile 的 test stage
 继承 runtime stage 一起拷进镜像，所以 ``StaticFiles`` 的挂载在测试里是生效的。
@@ -31,6 +32,14 @@ async def test_about_page(client):
 
     assert response.status_code == 200
     assert "关于" in response.text
+
+
+async def test_help_page(client):
+    """免认证的访问说明页 ``/help.html``（公网经 Caddy 映射到 ``/demo/help.html``）。"""
+    response = await client.get("/help.html")
+
+    assert response.status_code == 200
+    assert "演示访问说明" in response.text
 
 
 async def test_static_assets(client):
