@@ -46,8 +46,8 @@
     # 访客区：问答页 + 关于页 + 静态资源 + 问答 API
     @demo path /demo/*
     handle @demo {
-        basic_auth {
-            realm "RAG demo"
+        # realm 是 basic_auth 的位置参数，不是块内子指令
+        basic_auth bcrypt "RAG demo" {
             import /etc/caddy/local/guests.caddy
         }
         uri strip_prefix /demo
@@ -60,8 +60,7 @@
     # 站主区：摄入 API
     @ingest path /api/v1/documents* /api/v1/chunks*
     handle @ingest {
-        basic_auth {
-            realm "RAG owner"
+        basic_auth bcrypt "RAG owner" {
             import /etc/caddy/local/owner.caddy
         }
         reverse_proxy api:8000
@@ -69,8 +68,7 @@
 
     # 站主区：完整前端、问答 API、健康检查
     handle {
-        basic_auth {
-            realm "RAG owner"
+        basic_auth bcrypt "RAG owner" {
             import /etc/caddy/local/owner.caddy
         }
         reverse_proxy rag-api:8000
