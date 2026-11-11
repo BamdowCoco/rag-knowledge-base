@@ -8,8 +8,11 @@
 #   bash deploy/guest_accounts.sh remove <用户> 撤销一个访客账号
 #
 # 账号文件：
-#   deploy/caddy/guests.caddy  访客：只能访问 /demo/ 与 /demo/about.html
-#   deploy/caddy/owner.caddy   站主：完整前端、运维页、摄入接口
+#   deploy/caddy/guests.caddy  访客：demo-auth 表单登录读取，只能访问 /demo/
+#   deploy/caddy/owner.caddy   站主：Caddy Basic Auth，完整前端、运维页、摄入接口
+#
+# guests.caddy 由 rag-api 每次登录/校验时直接读取，增删即时生效，不需要 caddy reload。
+# owner.caddy 仍由 Caddy import，init-owner 后会 reload。
 #
 # 两个文件都被 gitignore；公司名和密码只写本地台账，不写进仓库。
 set -euo pipefail
@@ -81,8 +84,7 @@ case "${1:-}" in
     hash="$(hash_password "$password")"
     printf '%s %s\n' "$user" "$hash" >> "$GUESTS"
     chmod 600 "$GUESTS" 2>/dev/null || true
-    printf '\n访客账号已添加\n用户名：%s\n密码：%s\n入口：/demo/\n请记入本地台账。\n' "$user" "$password"
-    reload_proxy
+    printf '\n访客账号已添加\n用户名：%s\n密码：%s\n入口：/demo/\n账号即时生效，请记入本地台账。\n' "$user" "$password"
     ;;
 
   list)
@@ -103,7 +105,7 @@ case "${1:-}" in
     fi
     remaining="$(awk 'NF && $1 !~ /^#/ {count++} END {print count+0}' "$GUESTS")"
     if [[ "$remaining" -le 1 ]]; then
-      echo "拒绝删除最后一个访客账号：Caddy 的 basic_auth 不允许空账号列表。"
+      echo "拒绝删除最后一个访客账号：删空后所有访客都无法登录。"
       echo "先 add 一个新账号，再删旧的。"
       exit 1
     fi
@@ -111,8 +113,7 @@ case "${1:-}" in
     awk -v u="$user" 'NF && $1 == u {next} {print}' "$GUESTS" > "$tmp"
     mv "$tmp" "$GUESTS"
     chmod 600 "$GUESTS" 2>/dev/null || true
-    reload_proxy
-    echo "已删除访客账号：$user"
+    echo "已删除访客账号：$user（即时生效）"
     ;;
 
   *)

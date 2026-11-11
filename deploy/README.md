@@ -7,8 +7,11 @@
 
 ```text
 Internet 80/443
-  -> Caddy（自动 TLS、Basic Auth、路径分区）
-      /demo/*              -> rag-api，剥离前缀并注入 X-Demo-Mode: 1（访客区）
+  -> Caddy（自动 TLS、路径分区、访客会话校验）
+      /demo/login          -> 公开登录页
+      /demo/help.html      -> 公开访问说明
+      /demo/api/v1/auth/*  -> 公开登录 / 退出 / forward_auth check
+      /demo/*              -> forward_auth 后反代 rag-api（剥离前缀 + X-Demo-Mode）
       /demo/admin* 等      -> 404
       /api/v1/documents*   -> api:8000（站主区）
       /api/v1/chunks*      -> api:8000（站主区）
@@ -18,22 +21,23 @@ Internet 80/443
 
 访客区固定在 `/demo/`：
 
+- 打开 `/demo/` 会跳转到 `/demo/login`，登录后进入问答页；
 - 只能打开问答页 `/demo/` 和关于页 `/demo/about.html`；
 - 问答范围由前端锁死、后端兜底：来源 `web`、召回数 `5`；`web` 语料就是
   FastAPI 中文文档，语言由语料保证；
 - 运维页、摄入接口、`/metrics`、`/health`、`/docs` 在访客区直接 404 或 401。
 
-站主区是根路径 `/`：完整前端、`/admin.html`、问答接口和摄入接口。
+站主区是根路径 `/`：完整前端、`/admin.html`、问答接口和摄入接口，继续用 Basic Auth。
 
 ## 登录提示
 
-- **站主**用根路径 `https://<PUBLIC_DOMAIN>/`，账号来自 `deploy/caddy/owner.caddy`；
-- **访客**用 `https://<PUBLIC_DOMAIN>/demo/`，账号来自 `deploy/caddy/guests.caddy`；
-- 访客账号不能进站主区，站主账号也不在 `/demo/` 的账号列表里（保持分区）；
-- Basic Auth 输错用户名/密码时，浏览器会反复弹登录框，不会显示“密码错误”——这是浏览器
-  接管 401 的行为，Caddy 无法自定义登录框里的报错；
-- 弹窗的 realm 文本里带帮助地址；`https://<PUBLIC_DOMAIN>/demo/help.html` 免认证，
-  说明账号来源、站主入口和 Basic Auth 的限制。
+- **站主**用根路径 `https://<PUBLIC_DOMAIN>/`，账号来自 `deploy/caddy/owner.caddy`，
+  浏览器 Basic Auth 登录；
+- **访客**打开 `https://<PUBLIC_DOMAIN>/demo/`，会跳到登录页，输入
+  `deploy/caddy/guests.caddy` 里的用户名/密码；
+- 访客密码错误会在登录页直接显示“用户名或密码错误”，不会再反复弹浏览器登录框；
+- 登录成功后 Cookie 有效期 7 天，右上角“退出”可清 Cookie；
+- 帮助页 `https://<PUBLIC_DOMAIN>/demo/help.html` 免认证，说明账号来源和登录流程。
 
 ## 公网默认启动哪些服务
 
@@ -66,6 +70,8 @@ docker compose -f docker-compose.yml -f deploy/compose.vps.yml --profile mock up
 # 3. 拉代码并配置：
 cp .env.example .env
 # 修改 PUBLIC_DOMAIN、DB_PASSWORD、LLM_API_KEY 等
+# 生成访客 Cookie 密钥并写入 DEMO_SESSION_SECRET：
+openssl rand -hex 32
 
 # 4. 建账号文件（真实文件已被 gitignore）：
 mkdir -p deploy/caddy
@@ -87,13 +93,13 @@ docker compose ps
 ### 账号管理
 
 ```bash
-# 新增一个岗位访客账号（写入 guests.caddy 并 reload）
+# 新增一个岗位访客账号（写入 guests.caddy，即时生效）
 bash deploy/guest_accounts.sh add
 
 # 查看现有访客用户名（不显示密码）
 bash deploy/guest_accounts.sh list
 
-# 撤销某个岗位
+# 撤销某个岗位（即时生效，旧 Cookie 下次校验就失效）
 bash deploy/guest_accounts.sh remove u1a2b3c4
 
 # 删除默认演示账号（新账号验证通过后）
@@ -107,17 +113,25 @@ docker run --rm caddy:2-alpine caddy hash-password --plaintext '你的密码'
 ```
 
 ```text
-deploy/caddy/guests.caddy   访客账号：<用户名> <bcrypt hash>
-deploy/caddy/owner.caddy    站主账号：<用户名> <bcrypt hash>
+deploy/caddy/guests.caddy   访客账号：<用户名> <bcrypt hash>（demo-auth 读取）
+deploy/caddy/owner.caddy    站主账号：<用户名> <bcrypt hash>（Caddy Basic Auth）
 ```
 
 两个文件都在 `.gitignore` 里；仓库只提交 `*.example.caddy`。公司名和密码写本地的
 `docs/投递/演示账号.md`，不要写进用户名或仓库。
 
-访问日志（JSON，含 Basic Auth 的 `user_id`）：
+`compose.vps.yml` 会把 `deploy/caddy` 只读挂到 rag-api 的 `/etc/rag-demo`；
+访客账号增删不需要 `caddy reload`，认证服务每次登录/校验都会重新读文件。
+站主账号变更后仍需要 `caddy reload`。
+
+访问日志：
 
 ```bash
+# Caddy 访问日志：站主 Basic Auth 的 user_id 仍在这里
 docker exec rag-proxy tail -f /data/access.log
+
+# 访客登录成功/失败：看 rag-api 日志（含用户名和 IP，不含密码）
+docker logs -f rag-knowledge-base-rag-api-1
 ```
 
 ## Azure B2ls v2 + bamdow.kdns.fr
@@ -146,12 +160,14 @@ docker compose -f docker-compose.yml -f deploy/compose.vps.yml up -d --build
 
 ## 安全边界
 
-- Basic Auth 只能认证，不能做用户级授权；访客与站主靠两个账号列表 + 路径白名单隔离。
-- 所有访客账号权限相同、共享只读数据；没有退出登录和细粒度审计，用户名只体现在 Caddy 访问日志里。
+- 站主用 Caddy Basic Auth；访客用表单登录 + HMAC 签名的 HttpOnly Cookie，两者互不相通。
+- 访客 Cookie 不存密码，只存用户名 + 过期时间 + 签名；`Secure` / `SameSite=Lax` / `Path=/demo`。
+- 所有访客账号权限相同、共享只读数据；没有角色/多租户，登录成功/失败日志在 rag-api。
+- 登录失败限流 10 次 / 10 分钟（内存级，单 worker）；聊天接口本身仍没有限流。
 - 默认 `demo / rag-demo-2026` 已随公开仓库暴露，只作为过渡账号；新账号验证后立即
   `bash deploy/guest_accounts.sh remove demo`。
-- 投递流程结束后撤销对应账号，避免长期可访问。
-- 聊天接口没有限流；公开后被刷再考虑 Caddy 限流插件或 Cloudflare 规则。
+- 投递流程结束后撤销对应账号；认证服务每次校验都读账号文件，旧 Cookie 立即失效。
+- `DEMO_SESSION_SECRET` 必须配置；留空会使用进程内随机值，重启后所有访客会话失效。
 
 ## 安全清单
 

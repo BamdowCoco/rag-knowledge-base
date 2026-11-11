@@ -90,6 +90,19 @@ class Settings(BaseSettings):
     # rag = 只读（检索 / 问答），不跑迁移、不起后台循环。
     app_role: Literal["all", "ingest", "rag"] = "all"
 
+    # ---------- 访客表单登录 ----------
+    # 访客账号文件：由 deploy/guest_accounts.sh 维护，compose.vps.yml 只读挂载。
+    # 每次登录/校验都重新读文件，撤销账号后旧 Cookie 立即失效。
+    demo_accounts_file: str = "/etc/rag-demo/guests.caddy"
+    # Cookie 签名密钥；生产在 .env 里配置。为空时启动生成随机值（重启后旧会话失效）。
+    demo_session_secret: str = ""
+    # 本地 HTTP 测试可关掉 Secure；公网 HTTPS 必须保持 True
+    demo_cookie_secure: bool = True
+    # 访客会话有效期与登录失败限流
+    demo_session_ttl_seconds: int = 7 * 24 * 3600
+    demo_login_max_failures: int = 10
+    demo_login_window_seconds: int = 600
+
     # ---------- CORS（演示前端跨源） ----------
     # 运维页由 rag-api 的静态页提供（:8001），却要调 api（:8000）的统计接口 ——
     # 两个来源不同，必须走白名单。逗号分隔；**不要写成 ``*``** ，白名单就是用来收口的。

@@ -29,6 +29,8 @@ if settings.app_role in ("all", "ingest"):
 
 if settings.app_role in ("all", "rag"):
     # 延迟 import：rag 进程没必要加载摄入侧的模块树（反之亦然）
-    from app.api.v1.endpoints import qa
+    from app.api.v1.endpoints import demo_auth, qa
 
+    # 访客表单登录：/api/v1/auth/login|check|logout
+    api_router.include_router(demo_auth.router, prefix="/auth", tags=["demo-auth"])
     api_router.include_router(qa.router, tags=["qa"])

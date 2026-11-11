@@ -28,6 +28,11 @@ services:
     restart: unless-stopped
     networks: [backend]
 
+  # 访客表单登录要读 guests.caddy；目录只读挂载，账号增删即时生效
+  rag-api:
+    volumes:
+      - ./deploy/caddy:/etc/rag-demo:ro
+
   # 公网部署不启动 mock 上下游：
   # - 真实上游用 crawler（profile=crawler，手动 run）；
   # - 真实下游是 embedder；

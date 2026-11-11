@@ -29,3 +29,5 @@ qdrant-client>=1.15,<2
 # /metrics：Prometheus 文本格式指标（纯 Python，无额外系统依赖）。
 # 只做可观测，不参与业务判断；多 worker 时每个进程各一份注册表，由抓取端聚合。
 prometheus-client>=0.20
+# 访客表单登录：校验 guests.caddy 里的 bcrypt hash（Caddy 生成的 $2b$ 格式）
+bcrypt>=4.0

@@ -14,4 +14,14 @@ export const IS_DEMO = path === "/demo" || path.startsWith("/demo/");
 
 if (IS_DEMO) {
   document.documentElement.classList.add("is-demo");
+
+  // 访客区右上角加“退出”：清 Cookie 后回登录页
+  const nav = document.querySelector(".site-nav");
+  if (nav) {
+    const logout = document.createElement("a");
+    logout.href = "/demo/api/v1/auth/logout";
+    logout.textContent = "退出";
+    logout.setAttribute("aria-label", "退出访客登录");
+    nav.append(logout);
+  }
 }

@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#f5f5f1" />
+    <title>访客登录 · RAG 控制台</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3.5' y='3.5' width='25' height='25' rx='4.5' fill='none' stroke='%230d6b5d' stroke-width='1.5'/%3E%3Cpath d='M9.5 10.5h13M9.5 15.5h13M9.5 20.5h7' stroke='%230d6b5d' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #1c201e;
+        --ink-soft: #414844;
+        --ink-muted: #667069;
+        --line: #dcdfd7;
+        --line-strong: #c3c8be;
+        --ground: #f5f5f1;
+        --surface: #ffffff;
+        --accent: #0d6b5d;
+        --accent-hover: #0a584c;
+        --accent-soft: #e3f1ed;
+        --danger: #9b2f29;
+        --danger-soft: #fbeae8;
+        --danger-line: #e8b7b2;
+      }
+      * { box-sizing: border-box; }
+      html, body { min-height: 100%; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 20px;
+        background: var(--ground);
+        color: var(--ink);
+        font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      .shell { width: 100%; max-width: 430px; }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin: 0 0 18px;
+        padding: 0 4px;
+      }
+      .brand__mark { width: 30px; height: 30px; color: var(--accent); flex: none; }
+      .brand__name {
+        display: block;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        line-height: 1.25;
+      }
+      .brand__sub {
+        display: block;
+        color: var(--ink-muted);
+        font-size: 11.5px;
+        letter-spacing: 0.04em;
+        line-height: 1.3;
+      }
+      .card {
+        padding: 34px 34px 26px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: 0 1px 2px rgba(28, 32, 30, 0.04), 0 16px 40px rgba(28, 32, 30, 0.07);
+      }
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      h1 {
+        margin: 0 0 6px;
+        font-size: 30px;
+        line-height: 1.2;
+        letter-spacing: -0.015em;
+        text-wrap: pretty;
+      }
+      .lede {
+        margin: 0 0 24px;
+        color: var(--ink-soft);
+        font-size: 14px;
+        line-height: 1.65;
+        text-wrap: pretty;
+      }
+      .field { margin: 0 0 15px; }
+      .label {
+        display: block;
+        margin: 0 0 6px;
+        color: var(--ink-soft);
+        font-size: 12.5px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .input {
+        width: 100%;
+        height: 42px;
+        padding: 0 12px;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background: #fdfdfb;
+        color: var(--ink);
+        font: inherit;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+      }
+      .input:hover { border-color: #aeb5aa; }
+      .input:focus {
+        border-color: var(--accent);
+        background: var(--surface);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+      }
+      .alert {
+        display: flex;
+        gap: 8px;
+        margin: 0 0 15px;
+        padding: 10px 12px;
+        border: 1px solid var(--danger-line);
+        border-radius: 8px;
+        background: var(--danger-soft);
+        color: var(--danger);
+        font-size: 13px;
+        line-height: 1.55;
+        text-wrap: pretty;
+      }
+      .alert[hidden] { display: none; }
+      .alert__dot {
+        flex: none;
+        width: 6px;
+        height: 6px;
+        margin-top: 7px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        height: 44px;
+        margin-top: 4px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        background: var(--accent);
+        color: #f7fbf9;
+        font: inherit;
+        font-size: 14.5px;
+        font-weight: 650;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: background-color 140ms ease, transform 140ms ease, opacity 140ms ease;
+      }
+      .btn:hover { background: var(--accent-hover); }
+      .btn:active { transform: translateY(1px); }
+      .btn:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .btn:disabled { cursor: not-allowed; opacity: 0.72; }
+      .btn__spinner {
+        display: none;
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(247, 251, 249, 0.35);
+        border-top-color: #f7fbf9;
+        border-radius: 50%;
+        animation: spin 700ms linear infinite;
+      }
+      .btn[data-loading="true"] .btn__spinner { display: block; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .hint {
+        margin: 18px 0 0;
+        padding: 11px 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fafaf6;
+        color: var(--ink-muted);
+        font-size: 12.5px;
+        line-height: 1.6;
+        text-wrap: pretty;
+      }
+      .hint strong { color: var(--ink-soft); font-weight: 650; }
+      .foot {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px 14px;
+        margin: 20px 0 0;
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+        color: var(--ink-muted);
+        font-size: 12.5px;
+      }
+      .foot a { color: var(--accent); text-decoration: none; }
+      .foot a:hover { text-decoration: underline; }
+      .foot__links { display: flex; gap: 14px; }
+      .noscript {
+        margin: 0 0 15px;
+        padding: 10px 12px;
+        border: 1px solid var(--danger-line);
+        border-radius: 8px;
+        background: var(--danger-soft);
+        color: var(--danger);
+        font-size: 13px;
+      }
+      @media (max-width: 480px) {
+        body { padding: 20px 14px; align-items: flex-start; }
+        .card { padding: 28px 22px 22px; }
+        h1 { font-size: 26px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="brand">
+        <svg class="brand__mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect x="3.5" y="3.5" width="25" height="25" rx="4.5" stroke="currentColor" stroke-width="1.5" />
+          <path d="M9.5 10.5h13M9.5 15.5h13M9.5 20.5h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          <circle cx="24" cy="22" r="2.6" fill="currentColor" />
+        </svg>
+        <span>
+          <span class="brand__name">RAG 知识库控制台</span>
+          <span class="brand__sub">rag-knowledge-base</span>
+        </span>
+      </div>
+
+      <main class="card">
+        <p class="eyebrow">Visitor access</p>
+        <h1>访客登录</h1>
+        <p class="lede">企业知识库 RAG 问答演示。账号与密码由投递邮件单独提供。</p>
+
+        <noscript>
+          <p class="noscript">登录需要启用 JavaScript。请开启后刷新页面。</p>
+        </noscript>
+
+        <div class="alert" id="login-error" role="alert" hidden>
+          <span class="alert__dot" aria-hidden="true"></span>
+          <span id="login-error-text"></span>
+        </div>
+
+        <form id="login-form" novalidate>
+          <div class="field">
+            <label class="label" for="username">用户名</label>
+            <input
+              class="input"
+              id="username"
+              name="username"
+              type="text"
+              autocomplete="username"
+              autocapitalize="none"
+              spellcheck="false"
+              maxlength="64"
+              required
+              autofocus
+            />
+          </div>
+          <div class="field">
+            <label class="label" for="password">密码</label>
+            <input
+              class="input"
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              maxlength="256"
+              required
+            />
+          </div>
+          <button class="btn" id="login-submit" type="submit">
+            <span class="btn__spinner" aria-hidden="true"></span>
+            <span id="login-submit-label">登录</span>
+          </button>
+        </form>
+
+        <p class="hint">
+          <strong>输错密码会在这里提示</strong>，不会再反复弹浏览器登录框；账号失效请联系投递人重新发放。
+        </p>
+
+        <div class="foot">
+          <span>账号由投递邮件提供</span>
+          <span class="foot__links">
+            <a href="/demo/help.html">访问说明</a>
+            <a href="/">站主入口</a>
+          </span>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      (() => {
+        const form = document.getElementById("login-form");
+        const username = document.getElementById("username");
+        const password = document.getElementById("password");
+        const errorBox = document.getElementById("login-error");
+        const errorText = document.getElementById("login-error-text");
+        const submit = document.getElementById("login-submit");
+        const submitLabel = document.getElementById("login-submit-label");
+
+        const params = new URLSearchParams(window.location.search);
+        const requested = params.get("next");
+        const nextPath =
+          requested &&
+          requested.startsWith("/demo/") &&
+          !requested.startsWith("/demo/login")
+            ? requested
+            : "/demo/";
+
+        function showError(message) {
+          errorText.textContent = message;
+          errorBox.hidden = false;
+        }
+
+        function clearError() {
+          errorBox.hidden = true;
+          errorText.textContent = "";
+        }
+
+        function setLoading(loading) {
+          submit.disabled = loading;
+          if (loading) {
+            submit.dataset.loading = "true";
+            submitLabel.textContent = "登录中…";
+          } else {
+            delete submit.dataset.loading;
+            submitLabel.textContent = "登录";
+          }
+        }
+
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          clearError();
+
+          const user = username.value.trim();
+          const pass = password.value;
+          if (!user || !pass) {
+            showError("请输入用户名和密码。");
+            (!user ? username : password).focus();
+            return;
+          }
+
+          setLoading(true);
+          try {
+            const response = await fetch("/demo/api/v1/auth/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify({ username: user, password: pass }),
+            });
+
+            if (response.ok) {
+              window.location.assign(nextPath);
+              return;
+            }
+
+            let detail = "登录失败，请稍后再试。";
+            try {
+              const body = await response.json();
+              if (typeof body?.detail === "string") {
+                detail = body.detail;
+              }
+            } catch {
+              // 非 JSON 响应：保留兜底文案
+            }
+            showError(detail);
+            if (response.status === 401) {
+              password.value = "";
+              password.focus();
+            }
+          } catch {
+            showError("网络请求失败，请检查网络后重试。");
+          } finally {
+            setLoading(false);
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

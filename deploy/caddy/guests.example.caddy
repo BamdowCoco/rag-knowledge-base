@@ -3,6 +3,8 @@
 # 复制为 deploy/caddy/guests.caddy 后使用：
 #   cp deploy/caddy/guests.example.caddy deploy/caddy/guests.caddy
 #
+# 这些账号由 rag-api 的 demo-auth 表单登录读取；增删即时生效，不需要 caddy reload。
+#
 # 下面这一行是沿用公网最初的默认演示账号（密码 rag-demo-2026）。
 # 验证新账号可用后删掉：
 #   bash deploy/guest_accounts.sh remove demo

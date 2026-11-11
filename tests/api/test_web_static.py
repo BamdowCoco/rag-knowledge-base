@@ -42,6 +42,14 @@ async def test_help_page(client):
     assert "演示访问说明" in response.text
 
 
+async def test_login_page(client):
+    """免认证的访客登录页 ``/demo-login.html``（公网经 Caddy 映射到 ``/demo/login``）。"""
+    response = await client.get("/demo-login.html")
+
+    assert response.status_code == 200
+    assert "访客登录" in response.text
+
+
 async def test_static_assets(client):
     """分层的 CSS / JS 也要能按路径取到（目录结构与页面里的引用一致）。"""
     css = await client.get("/css/tokens.css")

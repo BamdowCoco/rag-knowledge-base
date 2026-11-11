@@ -2,9 +2,9 @@
 #
 # 启动前先在 .env 里把 PUBLIC_DOMAIN 改成真实域名。
 #
-# 账号分两个区，账号行放在本地文件里（已被 gitignore）：
-#   deploy/caddy/guests.caddy  访客账号：只能访问 /demo/ 问答页与 /demo/about.html
-#   deploy/caddy/owner.caddy   站主账号：根路径完整前端、运维页与摄入接口
+# 账号分两个区：
+#   deploy/caddy/guests.caddy  访客账号：表单登录读取（Caddy 不 import 它）
+#   deploy/caddy/owner.caddy   站主账号：Caddy Basic Auth，根路径 / 运维页 / 摄入接口
 #
 # 首次部署：
 #   mkdir -p deploy/caddy
@@ -14,10 +14,13 @@
 # 之后新增/撤销岗位账号都用 deploy/guest_accounts.sh，不要手工改 Caddyfile。
 #
 # 路由规则：
-#   /demo/*                     -> rag-api，剥离 /demo 前缀并注入 X-Demo-Mode: 1
+#   /demo/login                 -> 公开登录页（web/demo-login.html）
+#   /demo/help.html             -> 公开访问说明页
+#   /demo/api/v1/auth/*         -> 公开登录 / 退出 / forward_auth check
+#   /demo/*                     -> forward_auth，通过后反代 rag-api 并注入 X-Demo-Mode: 1
 #   /demo/admin* 等             -> 404（访客不可见）
-#   /api/v1/documents* /chunks* -> ingest api
-#   其余（含 / 与 /admin.html）  -> rag-api
+#   /api/v1/documents* /chunks* -> ingest api（站主 Basic Auth）
+#   其余（含 / 与 /admin.html）  -> rag-api（站主 Basic Auth）
 #
 # MySQL / Redis / Qdrant 不会经过这里；它们只在 Docker 内网。
 
@@ -37,24 +40,37 @@
         redir /demo/ 308
     }
 
-    # 公开的访问说明页：不经过 Basic Auth，输错密码后可从这里核对入口
+    # 公开登录页：静态文件，不经过 forward_auth
+    handle /demo/login {
+        rewrite * /demo-login.html
+        reverse_proxy rag-api:8000
+    }
+
+    # 公开的访问说明页：输错密码后可从这里核对入口
     handle /demo/help.html {
         uri strip_prefix /demo
         reverse_proxy rag-api:8000
     }
 
-    # 访客区禁止项：先返回 404，不落到站主区触发登录框
+    # 公开的登录 / 退出 / check 接口
+    handle /demo/api/v1/auth/* {
+        uri strip_prefix /demo
+        reverse_proxy rag-api:8000
+    }
+
+    # 访客区禁止项：先返回 404，不落到站主区触发 Basic Auth
     @demo_blocked path /demo/admin* /demo/metrics* /demo/health* /demo/docs* /demo/redoc* /demo/openapi.json /demo/api/v1/documents* /demo/api/v1/chunks*
     handle @demo_blocked {
         respond 404
     }
 
-    # 访客区：问答页 + 关于页 + 静态资源 + 问答 API
+    # 访客区：先校验 Cookie 会话，通过后再反代
     @demo path /demo/*
     handle @demo {
-        # realm 是 basic_auth 的位置参数，不是块内子指令；弹窗里会显示这段提示
-        basic_auth bcrypt "RAG demo - help: https://{$PUBLIC_DOMAIN}/demo/help.html" {
-            import /etc/caddy/local/guests.caddy
+        forward_auth rag-api:8000 {
+            # 有效返回 200 + X-Demo-User；无效返回 302 到 /demo/login
+            uri /api/v1/auth/check
+            copy_headers X-Demo-User
         }
         uri strip_prefix /demo
         reverse_proxy rag-api:8000 {
