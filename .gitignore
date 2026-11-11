@@ -28,6 +28,10 @@ docs/
 # 本地 embedding 模型（约 95MB，由 scripts/fetch_embedding_model 下载）
 models/
 
+# 公网演示账号（含 bcrypt 哈希，只留在本机/服务器）
+deploy/caddy/*.caddy
+!deploy/caddy/*.example.caddy
+
 # 图的本地工具与说明：只提交 PNG 产物，导出脚本与本地笔记不入库
 assets/diagrams/pad-png.py
 assets/diagrams/README.md

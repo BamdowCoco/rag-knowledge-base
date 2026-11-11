@@ -1,33 +1,78 @@
 # 公网 VPS 的 Caddy 配置
 #
 # 启动前先在 .env 里把 PUBLIC_DOMAIN 改成真实域名。
-# 下面的 Basic Auth 是演示占位账号：
-#   用户名：demo
-#   密码：rag-demo-2026
-# 正式暴露到公网前必须改掉：
-#   docker run --rm caddy:2-alpine caddy hash-password --plaintext 'your-password'
-# 然后用新 hash 替换下面这行。
+#
+# 账号分两个区，账号行放在本地文件里（已被 gitignore）：
+#   deploy/caddy/guests.caddy  访客账号：只能访问 /demo/ 问答页与 /demo/about.html
+#   deploy/caddy/owner.caddy   站主账号：根路径完整前端、运维页与摄入接口
+#
+# 首次部署：
+#   mkdir -p deploy/caddy
+#   cp deploy/caddy/guests.example.caddy deploy/caddy/guests.caddy
+#   bash deploy/guest_accounts.sh init-owner
+#
+# 之后新增/撤销岗位账号都用 deploy/guest_accounts.sh，不要手工改 Caddyfile。
 #
 # 路由规则：
-#   /api/v1/documents* 和 /api/v1/chunks* -> ingest api
-#   其余（前端页面、/search、/chat、/feedback、/health、/metrics）
-#   -> rag-api
+#   /demo/*                     -> rag-api，剥离 /demo 前缀并注入 X-Demo-Mode: 1
+#   /demo/admin* 等             -> 404（访客不可见）
+#   /api/v1/documents* /chunks* -> ingest api
+#   其余（含 / 与 /admin.html）  -> rag-api
 #
 # MySQL / Redis / Qdrant 不会经过这里；它们只在 Docker 内网。
 
 {$PUBLIC_DOMAIN} {
     encode zstd gzip
 
-    basic_auth {
-        demo $2b$14$pvMbCp8cUnQhYx77NP547.Fj9.IlGPIKfNKelbb3AbwNtAznMGS6q
+    log {
+        output file /data/access.log {
+            roll_size 10MiB
+            roll_keep 5
+        }
+        format json
     }
 
+    # /demo 补斜杠：否则页面里的相对路径会按“文件”解析，跑到根路径去
+    handle /demo {
+        redir /demo/ 308
+    }
+
+    # 访客区禁止项：先返回 404，不落到站主区触发登录框
+    @demo_blocked path /demo/admin* /demo/metrics* /demo/health* /demo/docs* /demo/redoc* /demo/openapi.json /demo/api/v1/documents* /demo/api/v1/chunks*
+    handle @demo_blocked {
+        respond 404
+    }
+
+    # 访客区：问答页 + 关于页 + 静态资源 + 问答 API
+    @demo path /demo/*
+    handle @demo {
+        basic_auth {
+            realm "RAG demo"
+            import /etc/caddy/local/guests.caddy
+        }
+        uri strip_prefix /demo
+        reverse_proxy rag-api:8000 {
+            # 后端据此把来源与召回数收窄为 web / 5（语料即 FastAPI 中文文档）
+            header_up X-Demo-Mode 1
+        }
+    }
+
+    # 站主区：摄入 API
     @ingest path /api/v1/documents* /api/v1/chunks*
     handle @ingest {
+        basic_auth {
+            realm "RAG owner"
+            import /etc/caddy/local/owner.caddy
+        }
         reverse_proxy api:8000
     }
 
+    # 站主区：完整前端、问答 API、健康检查
     handle {
+        basic_auth {
+            realm "RAG owner"
+            import /etc/caddy/local/owner.caddy
+        }
         reverse_proxy rag-api:8000
     }
 

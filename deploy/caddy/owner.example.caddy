@@ -1,0 +1,6 @@
+# 站主账号：<用户名> <bcrypt hash>
+#
+# 不要直接复制本文件。在服务器上执行：
+#   bash deploy/guest_accounts.sh init-owner
+#
+# 脚本会生成 deploy/caddy/owner.caddy（已被 gitignore），并打印一次密码。

@@ -1,0 +1,12 @@
+# 访客账号：<用户名> <bcrypt hash>
+#
+# 复制为 deploy/caddy/guests.caddy 后使用：
+#   cp deploy/caddy/guests.example.caddy deploy/caddy/guests.caddy
+#
+# 下面这一行是沿用公网最初的默认演示账号（密码 rag-demo-2026）。
+# 验证新账号可用后删掉：
+#   bash deploy/guest_accounts.sh remove demo
+#
+# 新增岗位账号不要手写 hash，直接跑：
+#   bash deploy/guest_accounts.sh add
+demo $2b$14$pvMbCp8cUnQhYx77NP547.Fj9.IlGPIKfNKelbb3AbwNtAznMGS6q

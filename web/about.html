@@ -10,10 +10,10 @@
     />
     <title>架构与边界 · RAG 控制台</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="css/tokens.css?v=20261104" />
-    <link rel="stylesheet" href="css/base.css?v=20261104" />
-    <link rel="stylesheet" href="css/components.css?v=20261104" />
-    <link rel="stylesheet" href="css/about.css?v=20261104" />
+    <link rel="stylesheet" href="css/tokens.css?v=20261111" />
+    <link rel="stylesheet" href="css/base.css?v=20261111" />
+    <link rel="stylesheet" href="css/components.css?v=20261111" />
+    <link rel="stylesheet" href="css/about.css?v=20261111" />
   </head>
   <body>
     <a class="skip-link" href="#main">跳到主要内容</a>
@@ -46,7 +46,7 @@
         </a>
         <nav class="site-nav" aria-label="主导航">
           <a href="index.html">问答</a>
-          <a href="admin.html">运维</a>
+          <a class="nav-owner" href="admin.html">运维</a>
           <a href="about.html" aria-current="page">关于</a>
         </nav>
       </div>
@@ -242,8 +242,8 @@
           <ul class="boundary-list">
             <li>
               <strong>模型质量有限。</strong>
-              本机 3B 小模型可能答得不完整；没有 Ollama 时降级为 extractive 片段拼接，仍可演示链路，但不是完整生成。
-              <span class="code-inline">done.degraded</span> 会明确标记。
+              公网演示接入 DeepSeek（OpenAI 兼容接口），回答质量取决于模型；调用失败时降级为原文片段拼接，
+              仍可演示链路，但不是完整生成。<span class="code-inline">done.degraded</span> 会明确标记。
             </li>
             <li>
               <strong>单轮问答。</strong>
@@ -254,12 +254,13 @@
               后端会校验越界引用编号，但无法保证每句话都被引用支撑；引用只代表本次检索到的资料。
             </li>
             <li>
-              <strong>没有鉴权与限流。</strong>
-              运维页只在本机使用。公网演示需要 Basic Auth、限流和只读网关，这些尚未接入。
+              <strong>访问控制是共享账号。</strong>
+              公网用 Caddy Basic Auth + 路径白名单只开放问答页和关于页；访客账号访问运维页或摄入接口会被拒绝。
+              Basic Auth 不区分用户身份，没有退出登录与细粒度权限；聊天接口也尚未限流。
             </li>
             <li>
-              <strong>公网部署未做。</strong>
-              当前只验证本地 Docker Compose；VPS、Caddy TLS、Cloudflare Tunnel 仍属于未完成的部署轨道。
+              <strong>单机演示环境。</strong>
+              Azure 单机 + Caddy 自动 HTTPS；没有多副本、自动备份与监控告警。
             </li>
             <li>
               <strong>评测集规模有限。</strong>
@@ -299,9 +300,10 @@
 
     <footer class="site-footer">
       <div class="site-footer__inner">
-        <span>rag-knowledge-base · 本地演示 · 不伪造公网链接与截图</span>
+        <span>rag-knowledge-base · 公网演示 · 链接与截图来自真实运行环境</span>
         <span><a href="index.html">返回问答</a></span>
       </div>
     </footer>
+    <script type="module" src="js/mode.js?v=20261111"></script>
   </body>
 </html>

@@ -10,10 +10,10 @@
     />
     <title>知识库问答 · RAG 控制台</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="css/tokens.css?v=20261104" />
-    <link rel="stylesheet" href="css/base.css?v=20261104" />
-    <link rel="stylesheet" href="css/components.css?v=20261104" />
-    <link rel="stylesheet" href="css/chat.css?v=20261104" />
+    <link rel="stylesheet" href="css/tokens.css?v=20261111" />
+    <link rel="stylesheet" href="css/base.css?v=20261111" />
+    <link rel="stylesheet" href="css/components.css?v=20261111" />
+    <link rel="stylesheet" href="css/chat.css?v=20261111" />
   </head>
   <body>
     <a class="skip-link" href="#main">跳到主要内容</a>
@@ -46,7 +46,7 @@
         </a>
         <nav class="site-nav" aria-label="主导航">
           <a href="index.html" aria-current="page">问答</a>
-          <a href="admin.html">运维</a>
+          <a class="nav-owner" href="admin.html">运维</a>
           <a href="about.html">关于</a>
         </nav>
       </div>
@@ -57,7 +57,7 @@
         <div id="error-slot" class="error-slot"></div>
 
         <div class="filter-bar" role="group" aria-label="检索筛选">
-          <div class="field field--source">
+          <div class="field field--source" data-demo-hide>
             <label class="label" for="filter-source">来源</label>
             <select class="select" id="filter-source" name="source">
               <option value="all">全部来源</option>
@@ -67,7 +67,7 @@
               <option value="yuque">yuque（模拟）</option>
             </select>
           </div>
-          <div class="field">
+          <div class="field" data-demo-hide>
             <label class="label" for="filter-language">语言</label>
             <select class="select" id="filter-language" name="language">
               <option value="all">全部</option>
@@ -75,7 +75,7 @@
               <option value="en">英文 en</option>
             </select>
           </div>
-          <div class="field field--topk">
+          <div class="field field--topk" data-demo-hide>
             <label class="label" for="filter-topk">召回数</label>
             <select class="select" id="filter-topk" name="top_k">
               <option value="3">3</option>
@@ -83,6 +83,9 @@
               <option value="10">10</option>
             </select>
           </div>
+          <p class="demo-scope" id="demo-scope" hidden>
+            <b>演示范围</b> 来源 web（FastAPI 中文文档） · 召回数 5
+          </p>
           <div class="filter-bar__actions">
             <button class="btn btn--ghost btn--sm" id="clear-button" type="button" aria-label="清空对话">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -220,8 +223,8 @@
       </div>
     </footer>
 
-    <script src="js/vendor/marked.min.js?v=20261104"></script>
-    <script src="js/vendor/purify.min.js?v=20261104"></script>
-    <script type="module" src="js/chat.js?v=20261104"></script>
+    <script src="js/vendor/marked.min.js?v=20261111"></script>
+    <script src="js/vendor/purify.min.js?v=20261111"></script>
+    <script type="module" src="js/chat.js?v=20261111"></script>
   </body>
 </html>

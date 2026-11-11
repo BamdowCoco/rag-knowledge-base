@@ -7,12 +7,23 @@
 
 ```text
 Internet 80/443
-  -> Caddy（自动 TLS、Basic Auth）
-      /api/v1/documents*  -> api:8000
-      /api/v1/chunks*     -> api:8000
-      其余                -> rag-api:8000（前端 + 检索 + 问答）
+  -> Caddy（自动 TLS、Basic Auth、路径分区）
+      /demo/*              -> rag-api，剥离前缀并注入 X-Demo-Mode: 1（访客区）
+      /demo/admin* 等      -> 404
+      /api/v1/documents*   -> api:8000（站主区）
+      /api/v1/chunks*      -> api:8000（站主区）
+      其余                 -> rag-api:8000（站主区：完整前端 + 检索 + 问答）
   mysql / redis / qdrant 只在 Docker 内网
 ```
+
+访客区固定在 `/demo/`：
+
+- 只能打开问答页 `/demo/` 和关于页 `/demo/about.html`；
+- 问答范围由前端锁死、后端兜底：来源 `web`、召回数 `5`；`web` 语料就是
+  FastAPI 中文文档，语言由语料保证；
+- 运维页、摄入接口、`/metrics`、`/health`、`/docs` 在访客区直接 404 或 401。
+
+站主区是根路径 `/`：完整前端、`/admin.html`、问答接口和摄入接口。
 
 ## 公网默认启动哪些服务
 
@@ -46,15 +57,58 @@ docker compose -f docker-compose.yml -f deploy/compose.vps.yml --profile mock up
 cp .env.example .env
 # 修改 PUBLIC_DOMAIN、DB_PASSWORD、LLM_API_KEY 等
 
-# 4. 在服务器上下载 embedding 模型：
+# 4. 建账号文件（真实文件已被 gitignore）：
+mkdir -p deploy/caddy
+cp deploy/caddy/guests.example.caddy deploy/caddy/guests.caddy
+bash deploy/guest_accounts.sh init-owner
+# 记下打印出的站主密码；guests.caddy 里暂时保留默认 demo 账号
+
+# 5. 在服务器上下载 embedding 模型：
 bash scripts/fetch_embedding_model.sh
 
-# 5. 启动整套服务：
+# 6. 启动整套服务：
 docker compose -f docker-compose.yml -f deploy/compose.vps.yml up -d --build
 docker compose ps
 ```
 
-浏览器打开 `https://<PUBLIC_DOMAIN>/`。
+- 站主：浏览器打开 `https://<PUBLIC_DOMAIN>/`，用 `owner` 账号；
+- 访客：打开 `https://<PUBLIC_DOMAIN>/demo/`，用 `deploy/guest_accounts.sh add` 生成的账号。
+
+### 账号管理
+
+```bash
+# 新增一个岗位访客账号（写入 guests.caddy 并 reload）
+bash deploy/guest_accounts.sh add
+
+# 查看现有访客用户名（不显示密码）
+bash deploy/guest_accounts.sh list
+
+# 撤销某个岗位
+bash deploy/guest_accounts.sh remove u1a2b3c4
+
+# 删除默认演示账号（新账号验证通过后）
+bash deploy/guest_accounts.sh remove demo
+```
+
+账号行格式与 hash 生成：
+
+```bash
+docker run --rm caddy:2-alpine caddy hash-password --plaintext '你的密码'
+```
+
+```text
+deploy/caddy/guests.caddy   访客账号：<用户名> <bcrypt hash>
+deploy/caddy/owner.caddy    站主账号：<用户名> <bcrypt hash>
+```
+
+两个文件都在 `.gitignore` 里；仓库只提交 `*.example.caddy`。公司名和密码写本地的
+`docs/投递/演示账号.md`，不要写进用户名或仓库。
+
+访问日志（JSON，含 Basic Auth 的 `user_id`）：
+
+```bash
+docker exec rag-proxy tail -f /data/access.log
+```
 
 ## Azure B2ls v2 + bamdow.kdns.fr
 
@@ -67,7 +121,7 @@ bash deploy/preflight.sh
 ```
 
 4. 4 GiB 内存先加 2 GB swap（见本地完整文档）；
-5. 配好 `.env`（`PUBLIC_DOMAIN=bamdow.kdns.fr`）和模型后，用同一条命令启动：
+5. 配好 `.env`（`PUBLIC_DOMAIN=bamdow.kdns.fr`）、账号文件和模型后，用同一条命令启动：
 
 ```bash
 docker compose -f docker-compose.yml -f deploy/compose.vps.yml up -d --build
@@ -80,20 +134,14 @@ docker compose -f docker-compose.yml -f deploy/compose.vps.yml up -d --build
 先用 Cloudflare Quick Tunnel（VM 内 cloudflared + Caddy `:80`）拿临时 HTTPS 地址；
 长期建议固定 Azure 公网 IP 并保留域名 + Caddy TLS。
 
-## Basic Auth
+## 安全边界
 
-`deploy/Caddyfile.vps` 里带了演示账号：
-
-- 用户名：`demo`
-- 密码：`rag-demo-2026`
-
-正式暴露前必须改：
-
-```bash
-docker run --rm caddy:2-alpine caddy hash-password --plaintext 'your-password'
-```
-
-把 `Caddyfile.vps` 里的 hash 替换掉，然后重启 `proxy`。
+- Basic Auth 只能认证，不能做用户级授权；访客与站主靠两个账号列表 + 路径白名单隔离。
+- 所有访客账号权限相同、共享只读数据；没有退出登录和细粒度审计，用户名只体现在 Caddy 访问日志里。
+- 默认 `demo / rag-demo-2026` 已随公开仓库暴露，只作为过渡账号；新账号验证后立即
+  `bash deploy/guest_accounts.sh remove demo`。
+- 投递流程结束后撤销对应账号，避免长期可访问。
+- 聊天接口没有限流；公开后被刷再考虑 Caddy 限流插件或 Cloudflare 规则。
 
 ## 安全清单
 

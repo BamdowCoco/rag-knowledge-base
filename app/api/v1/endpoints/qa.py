@@ -14,7 +14,7 @@ import json
 import logging
 from collections.abc import AsyncIterator
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from redis.asyncio import Redis
 
@@ -24,6 +24,7 @@ from app.schemas.qa import (
     FeedbackRequest,
     FeedbackResult,
     RetrievalResult,
+    SearchFilters,
     SearchRequest,
     SearchResponse,
     ChatRequest,
@@ -40,10 +41,43 @@ router = APIRouter()
 _FEEDBACK_KEY = "qa:feedback"
 _FEEDBACK_MAX_ITEMS = 1000
 
+# 公网访客区的固定问答范围。Caddy 在 /demo/* 反代时注入 ``X-Demo-Mode: 1``，
+# 前端也把筛选项锁死；这里再兜底一次，防止有人直接拿访客账号调接口改范围。
+#
+# 只锁 source 与 top_k：``source=web`` 就是 FastAPI 中文文档，语言由语料保证。
+# 不再叠加 ``language=zh`` —— enrichment 的语言字段晚于向量写入，历史 chunk 的
+# Qdrant payload 可能是 null，硬过滤会把正常文档排除掉。
+DEMO_HEADER = "x-demo-mode"
+DEMO_SOURCE = "web"
+DEMO_TOP_K = 5
+
+
+def _demo_scope(
+    demo: bool,
+    top_k: int,
+    filters: SearchFilters | None,
+) -> tuple[int, SearchFilters | None]:
+    """
+    按访客模式收窄检索范围。
+
+    :param demo: 请求是否来自访客区（由 Caddy 注入的请求头判定）。
+    :param top_k: 调用方请求的召回数。
+    :param filters: 调用方请求的过滤条件。
+    :return: ``(top_k, filters)``；非访客模式原样返回。
+    """
+    if not demo:
+        return top_k, filters
+    narrowed = filters.model_copy() if filters is not None else SearchFilters()
+    narrowed = narrowed.model_copy(
+        update={"source": [DEMO_SOURCE], "language": None}
+    )
+    return DEMO_TOP_K, narrowed
+
 
 @router.post("/search", response_model=SearchResponse, summary="向量 / 混合检索")
 async def search_chunks(
     payload: SearchRequest,
+    request: Request,
     service: RetrievalService = Depends(get_retrieval_service),
 ) -> SearchResponse:
     """
@@ -53,15 +87,22 @@ async def search_chunks(
     拒答阈值由 ``/chat/stream`` 使用（``AnswerService`` 统一比较 ``best_dense_score``）。
     字段保留是为了让两个接口的请求体形状一致，评测脚本不必按路由区别对待。
 
+    访客区请求（``X-Demo-Mode: 1``）会被强制收窄为 ``source=web``、``top_k=5``；
+    ``source=web`` 即 FastAPI 中文文档，语言由语料保证。
+
     :param payload: 查询文本、条数上限、过滤条件与按次覆盖项。
+    :param request: 用于读取 Caddy 注入的访客标记。
     :param service: 检索服务。
     :return: 命中片段（最终分数降序）、耗时、embedding 模型与检索诊断字段。
     :raises RetrievalUnavailableError: Qdrant / embedding 不可用（映射为 503）。
     """
+    top_k, filters = _demo_scope(
+        request.headers.get(DEMO_HEADER) == "1", payload.top_k, payload.filters
+    )
     outcome = await service.search(
         payload.query,
-        payload.top_k,
-        payload.filters,
+        top_k,
+        filters,
         mode=payload.retrieval_mode,
         use_cache=payload.use_cache,
     )
@@ -93,6 +134,7 @@ async def search_chunks(
 @router.post("/chat/stream", summary="流式问答（SSE）")
 async def chat_stream(
     payload: ChatRequest,
+    request: Request,
     service: AnswerService = Depends(get_answer_service),
 ) -> StreamingResponse:
     """
@@ -108,10 +150,17 @@ async def chat_stream(
 
     无检索结果时不会调用 LLM，直接返回固定拒答并把 ``done.reason`` 置为 ``no_context``。
 
+    访客区请求（``X-Demo-Mode: 1``）会被强制收窄为 ``source=web``、``top_k=5``；
+    ``source=web`` 即 FastAPI 中文文档，语言由语料保证。
+
     :param payload: 问题、条数上限、过滤条件与按次覆盖项。
+    :param request: 用于读取 Caddy 注入的访客标记。
     :param service: 问答服务。
     :return: ``text/event-stream`` 流式响应。
     """
+    top_k, filters = _demo_scope(
+        request.headers.get(DEMO_HEADER) == "1", payload.top_k, payload.filters
+    )
 
     async def gen() -> AsyncIterator[str]:
         """
@@ -121,8 +170,8 @@ async def chat_stream(
         """
         async for event in service.stream(
             payload.question,
-            payload.top_k,
-            payload.filters,
+            top_k,
+            filters,
             retrieval_mode=payload.retrieval_mode,
             use_cache=payload.use_cache,
             score_threshold=payload.score_threshold,

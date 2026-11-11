@@ -191,6 +191,29 @@ function readFilters() {
   return Object.keys(filters).length > 0 ? filters : null;
 }
 
+/**
+ * 访客演示区：固定来源与召回数。
+ *
+ * 语言不单独发过滤条件：``source=web`` 就是 FastAPI 中文文档，语言由语料保证。
+ * 只是 UI 层的第一道锁；Caddy 会给 ``/demo/*`` 注入 ``X-Demo-Mode: 1``，
+ * 后端还会再收窄一次，直接调接口也改不了范围。
+ */
+function applyDemoMode() {
+  if (!CONFIG.demoMode) {
+    return;
+  }
+  dom.source.value = "web";
+  dom.language.value = "all";
+  dom.topk.value = "5";
+  document.querySelectorAll("[data-demo-hide]").forEach((node) => {
+    node.hidden = true;
+  });
+  const scope = document.getElementById("demo-scope");
+  if (scope) {
+    scope.hidden = false;
+  }
+}
+
 /* ---- 消息渲染 ---------------------------------------------------------- */
 
 function appendUserMessage(question) {
@@ -727,6 +750,7 @@ function init() {
   if (dom.topk) {
     dom.topk.value = String(CONFIG.defaultTopK);
   }
+  applyDemoMode();
 
   dom.form.addEventListener("submit", handleSubmit);
   dom.input.addEventListener("input", updateInputMeta);

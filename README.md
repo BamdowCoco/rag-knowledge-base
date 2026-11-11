@@ -173,7 +173,7 @@ python scripts\smoke.py
 ```
 
 > 前端由 `rag-api` 同源提供；运维页从 8001 调 api（8000）的统计接口，走白名单 CORS。
-> 运维页只在本机使用，不要通过公网隧道暴露。
+> 公网部署时运维页只在站主区；访客账号只能进 `/demo/` 的问答页和关于页。
 >
 > `demo.cmd` / `demo.ps1` 启动后会**停掉 mock `syncer`**，让来源分布和“重复同步拦截”只反映真实
 > `web` 语料；想看重复同步演示时执行 `docker compose start syncer` 恢复。
@@ -182,7 +182,7 @@ python scripts\smoke.py
 > `bench` = 压测数据（运维页默认隐藏）。
 >
 > 当前 `LLM_PROVIDER=extractive` 是**检索片段模式**，不是故障；想接真实模型时启动 Ollama 并改 `.env`。
-> 本分支只做本地 demo；VPS / Caddy / Cloudflare 隧道未做。
+> 公网部署（Azure + Cloudflare DNS + Caddy）见 `deploy/README.md`。
 
 ### 9. 接云模型（可选，无需本地大模型）
 

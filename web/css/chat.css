@@ -122,6 +122,18 @@
   margin-left: auto;
 }
 
+/* 访客演示区：筛选项隐藏后，用一行固定说明交代范围 */
+.demo-scope {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.demo-scope b {
+  color: var(--color-ink);
+}
+
 /* ---- 对话流 ------------------------------------------------------------ */
 
 .conversation {

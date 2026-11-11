@@ -16,6 +16,8 @@ services:
       - .env
     volumes:
       - ./deploy/Caddyfile.vps:/etc/caddy/Caddyfile:ro
+      # 账号文件：guests.caddy / owner.caddy 只留在服务器，不进仓库
+      - ./deploy/caddy:/etc/caddy/local:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
